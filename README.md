@@ -1,5 +1,6 @@
 # CycloneSense — Explainable Multi-Source Tropical Cyclone Pattern Intelligence
 
+[![CI](https://github.com/KatkamKoushik/cyclonesense/actions/workflows/ci.yml/badge.svg)](https://github.com/KatkamKoushik/cyclonesense/actions/workflows/ci.yml)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg?style=flat&logo=fastapi)](https://fastapi.tiangolo.com)
 [![Next.js](https://img.shields.io/badge/Next.js-16.3-black.svg?style=flat&logo=next.js)](https://nextjs.org)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.x-EE4C2C.svg?style=flat&logo=pytorch)](https://pytorch.org)
@@ -7,7 +8,7 @@
 [![Tests](https://img.shields.io/badge/Tests-55%20Passed-brightgreen.svg)]()
 [![Impact Intelligence](https://img.shields.io/badge/Impact%20Intelligence-Live%20Verified-blue.svg)]()
 [![W3C PROV](https://img.shields.io/badge/Provenance-W3C%20PROV-purple.svg)]()
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 > **CycloneSense** is an authentic, explainable meteorological intelligence research prototype designed to ingest, quality-control, georeference, and analyze tropical cyclone patterns directly from scientific Earth Observation (EO) satellite products (NetCDF4, HDF5) and authoritative best-track archives (NOAA IBTrACS).
 
@@ -89,9 +90,9 @@ flowchart LR
     Endpoints <--> Frontend
 ```
 
-For the formal architecture specification, empirical benchmark comparisons, and delivery roadmap for the SANKALP evaluation, see [Final Technology Stack & Technical Approach](file:///d:/CycloneSense/docs/architecture/FINAL_TECHNOLOGY_STACK_AND_TECHNICAL_APPROACH.md).
+For the formal architecture specification, empirical benchmark comparisons, and delivery roadmap for the SANKALP evaluation, see [Final Technology Stack & Technical Approach](docs/architecture/FINAL_TECHNOLOGY_STACK_AND_TECHNICAL_APPROACH.md).
 
-For the next-generation ground change detection, biophysical differencing, and Satellite VLM specifications, see [Impact Intelligence Technical Documentation](file:///d:/cyclone/docs/impact-intelligence.md).
+For the next-generation ground change detection, biophysical differencing, and Satellite VLM specifications, see [Impact Intelligence Technical Documentation](docs/impact-intelligence.md).
 
 ---
 
@@ -232,8 +233,9 @@ CycloneSense/
 ### 2. Backend Setup (FastAPI)
 
 ```bash
-# Navigate to project root
-cd d:/CycloneSense
+# Clone repository and navigate to root
+git clone https://github.com/KatkamKoushik/cyclonesense.git
+cd cyclonesense
 
 # (Optional) Create and activate virtual environment
 python -m venv .venv
@@ -276,16 +278,20 @@ pnpm dev --port 3000
 The test suite covers API routing, scientific NetCDF/HDF5 reading, physical bounds QC, dataset splitting, neural inference, Grad-CAM explainability, W3C PROV provenance, closed-form GOES ABI coordinate georeferencing, and temporal/spatial pairing.
 
 ```bash
-# Run the complete test suite (47 tests)
+# Run the complete test suite (55 tests)
 python -m pytest backend/tests -v
+
+# Alternatively, run only the fast portable subset (48 tests, in-memory & synthetic fixtures)
+python -m pytest backend/tests -m "not heavyweight" -v
 ```
 
 ```
 ============================= test session starts =============================
-collected 47 items
+collected 55 items
 
 backend/tests/test_api.py (13 tests) ...................... PASSED
 backend/tests/test_geospatial_pairing.py (7 tests) ........ PASSED
+backend/tests/test_impact_intelligence.py (8 tests) ....... PASSED
 backend/tests/test_ml_dataset.py (4 tests) ................ PASSED
 backend/tests/test_ml_evaluation.py (3 tests) ............. PASSED
 backend/tests/test_ml_explainability.py (5 tests) ......... PASSED
@@ -295,7 +301,7 @@ backend/tests/test_provenance.py (2 tests) ................ PASSED
 backend/tests/test_qc.py (4 tests) ........................ PASSED
 backend/tests/test_scientific_reader.py (4 tests) ......... PASSED
 
-============================= 47 passed in 37.81s =============================
+======================= 55 passed, 1 warning in 22.79s ========================
 ```
 
 ```bash
@@ -352,15 +358,21 @@ In compliance with rigorous meteorological and scientific standards:
 
 ---
 
-## Data Sources & Attributions
+## Data Sources, Attributions & Policy
 
-- **NOAA GOES-R Series ABI:** National Oceanic and Atmospheric Administration via the NOAA Open Data Dissemination (NODD) program on AWS S3 (`noaa-goes16.s3.amazonaws.com`).
-- **NOAA NCEI IBTrACS:** International Best Track Archive for Climate Stewardship (IBTrACS) v04r01 NetCDF archive.
-- **NASA Earthdata CMR:** Common Metadata Repository (CMR) operated by NASA Earth Science Data and Information System (ESDIS).
-- **ISRO MOSDAC:** Meteorological and Oceanographic Satellite Data Archival Centre, Indian Space Research Organisation.
+- **NOAA GOES-R Series ABI:** National Oceanic and Atmospheric Administration via the NOAA Open Data Dissemination (NODD) program on AWS S3 (`noaa-goes16.s3.amazonaws.com`). Public Domain (17 U.S.C. § 105).
+- **NOAA NCEI IBTrACS:** International Best Track Archive for Climate Stewardship (IBTrACS) v04r01 NetCDF archive. Public Domain.
+- **Copernicus Sentinel-1 & Sentinel-2:** European Space Agency (ESA) & European Commission via Copernicus Data Space Ecosystem. *Contains modified Copernicus Sentinel data [2019], processed by CycloneSense.*
+- **NASA Earthdata CMR:** Common Metadata Repository (CMR) operated by NASA Earth Science Data and Information System (ESDIS). Unrestricted open access.
+- **ISRO MOSDAC:** Meteorological and Oceanographic Satellite Data Archival Centre, Indian Space Research Organisation. Requires user registration.
+- **Proxy & Synthetic Calibration Data:** All reference and synthetic grids (`reference_cyclone_grid.nc`, `reference_satellite_grid.nc`, `test_satellite_granule.nc`) are explicitly labelled and separated from authentic spaceborne observations to preserve scientific truth-in-advertising.
+
+For complete licensing terms, model checkpoint governance (CC BY 4.0), data provenance, and proxy/synthetic data labelling guidelines, see [Data, Model & Attribution Policy](DATA_AND_MODELS.md).
 
 ---
 
 ## License
 
-Released under the [MIT License](LICENSE).
+Software released under the [MIT License](LICENSE).  
+Pretrained model weights released under [Creative Commons Attribution 4.0 (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/).  
+See [LICENSE](LICENSE) and [DATA_AND_MODELS.md](DATA_AND_MODELS.md) for full terms.

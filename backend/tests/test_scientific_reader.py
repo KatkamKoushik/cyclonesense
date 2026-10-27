@@ -36,6 +36,7 @@ def test_read_variable_with_calibration(sample_grid_file):
     assert not (data < 100.0).any()  # All physical temperatures > 100 K
 
 
+@pytest.mark.heavyweight
 def test_inspect_real_ibtracs_netcdf():
     ibtracs_path = Path("backend/data/raw/IBTrACS.NI.v04r01.nc")
     if not ibtracs_path.exists():

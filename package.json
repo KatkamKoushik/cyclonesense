@@ -10,5 +10,5 @@
     "test:backend": "python -m pytest backend/tests",
     "server:backend": "python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --reload"
   },
-  "packageManager": "pnpm@10.5.2"
+  "packageManager": "pnpm@12.4.2"
 }

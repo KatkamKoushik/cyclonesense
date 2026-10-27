@@ -1,8 +1,8 @@
 {
-  "report_version": "2.0.0-reconciled",
-  "timestamp_utc": "2026-10-04T04:00:42.019693+00:00",
+  "report_version": "2.1.0-audited",
+  "timestamp_utc": "2026-10-27T22:51:05.103328+00:00",
   "dataset": {
-    "source": "D:\\cyclone\\backend\\data\\raw\\IBTrACS.NI.v04r01.nc",
+    "source": "D:\\CycloneSense\\backend\\data\\raw\\IBTrACS.NI.v04r01.nc",
     "total_observations": 7229,
     "split": {
       "strategy": "temporal",
@@ -59,7 +59,7 @@
       "leakage_check_passed": true
     },
     "missing_stats": {
-      "source_file": "D:\\cyclone\\backend\\data\\raw\\IBTrACS.NI.v04r01.nc",
+      "source_file": "D:\\CycloneSense\\backend\\data\\raw\\IBTrACS.NI.v04r01.nc",
       "total_storms_in_archive": 1859,
       "filtered_storms_season_range": 265,
       "total_observations_examined": 9633,
@@ -296,5 +296,15 @@
       "test_fusion_macro_f1": 0.7341,
       "explanation": "Checkpoint metadata files recorded validation set metrics during training early stopping; benchmark reports record held-out test set metrics."
     }
+  },
+  "scientific_fidelity_audit": {
+    "synthetic_input_target_leakage_finding": "CRITICAL SCIENTIFIC AUDIT: In TropicalCycloneDataset, multi-channel raster inputs are synthesized directly from the target label (obs.wind_kts) via analytical vortex equations (eyewall cooling and eye warming parameterizing wind speed). The neural models therefore learn to invert the generator's formula rather than infer cyclone intensity from genuine spaceborne satellite observations. While storm-level temporal splitting prevents observation sharing across partitions, it cannot eliminate the deterministic target signal baked into each synthetic raster. Consequently, the low test MAE (1.721 kts) and correlation (0.999) are mathematical artifacts of analytical formula inversion and MUST NOT be cited as evidence of real-world satellite predictive skill.",
+    "modality_authenticity_breakdown": {
+      "baseline_cliper": "AUTHENTIC: Evaluated on genuine NOAA IBTrACS kinematic & climatological covariates (Test MAE 7.766 kts, RMSE 9.665 kts).",
+      "environment_only": "AUTHENTIC: Evaluated on 8 authentic IBTrACS atmospheric/kinematic covariates (Test MAE 9.993 kts, RMSE 14.317 kts).",
+      "image_only": "SYNTHETIC PROXY: Evaluated on proxy rasters generated from target wind_kts. Metrics reflect generator inversion.",
+      "multimodal_fusion": "HYBRID PROXY: Evaluated on authentic environmental covariates combined with synthetic proxy rasters."
+    },
+    "authentic_satellite_pathway": "For genuine Earth Observation satellite evaluation, use PairedSatelliteCycloneDataset with authentic spaceborne NOAA GOES-16 ABI or Sentinel-1/2 NetCDF granules."
   }
 }

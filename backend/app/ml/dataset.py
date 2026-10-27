@@ -396,12 +396,39 @@ class IBTrACSDatasetBuilder:
 
 class TropicalCycloneDataset(Dataset):
     """
-    PyTorch Dataset providing:
-    - Multi-channel calibrated satellite tensor: [C, H, W]
+    ANALYTICAL PROXY / SYNTHETIC EXPERIMENT DATASET:
+    -------------------------------------------------
+    Provides:
+    - Multi-channel proxy satellite tensor: [C, H, W]
     - Environmental feature vector: [8]
     - Target intensity (knots): float32
     - Target pattern category: int64
     - Metadata dictionary
+
+    CRITICAL METHODOLOGICAL LIMITATION & TARGET-INPUT LEAKAGE DISCLOSURE:
+    ---------------------------------------------------------------------
+    This dataset synthesizes proxy multi-channel radiative matrices [2, H, W]
+    directly from the ground-truth target wind speed (obs.wind_kts) using an analytical
+    vortex temperature formulation (eyewall cooling, eye warming, and background
+    temperatures parameterizing wind laws).
+
+    Consequently, the input image structure is deterministically generated from the
+    exact ground truth label the neural model is tasked with predicting. When models
+    (Image-Only CNN, Multimodal Fusion) are trained and tested on this dataset, they
+    learn to invert this synthetic generation formula rather than extract features
+    from genuine spaceborne satellite observations.
+
+    Even with strict storm-level temporal splitting (which prevents frame-level sharing
+    across partitions), the target information remains embedded inside every synthetic
+    raster. The resulting unusually low test errors (MAE ~ 1.7-1.8 kts, Pearson r ~ 0.999)
+    are a mathematical artifact of analytical generator inversion, and MUST NOT be
+    interpreted as validated real-world spaceborne prediction metrics.
+
+    FOR AUTHENTIC SATELLITE ML EVALUATION:
+    -------------------------------------
+    Use `PairedSatelliteCycloneDataset`, which pairs authentic georeferenced satellite
+    granules (NOAA GOES ABI, Sentinel) with IBTrACS ground truth without target-to-image
+    fabrication.
     """
 
     def __init__(
@@ -430,6 +457,7 @@ class TropicalCycloneDataset(Dataset):
         # Physical infrared brightness temperature modeling (Kelvin):
         # High intensity -> colder eyewall (190-205 K), warmer eye (235-245 K)
         # Low intensity -> diffuse convection (230-260 K)
+        # NOTE: Using obs.wind_kts here embeds the target prediction into the input tensor.
         wind = obs.wind_kts
         eyewall_cooling = min(wind * 0.65, 80.0) * np.exp(- ((r - 0.25) ** 2) / 0.05)
         eye_warming = min(max(wind - 40.0, 0.0) * 0.45, 30.0) * np.exp(- (r ** 2) / 0.02)
@@ -461,6 +489,8 @@ class TropicalCycloneDataset(Dataset):
             "timestamp": obs.timestamp_iso,
             "coords": torch.tensor([obs.lat, obs.lon], dtype=torch.float32),
             "is_synthetic_benchmark": True,  # Discloses analytical proxy generation
+            "synthetic_generator_target_leakage_warning": True,
+            "synthetic_generator_formula": "analytical_vortex_temp_from_wind",
         }
 
 

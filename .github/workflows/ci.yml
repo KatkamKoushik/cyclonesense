@@ -38,9 +38,21 @@ jobs:
         working-directory: frontend
         run: pnpm install
 
+      - name: Verify dependency security (pnpm audit)
+        working-directory: frontend
+        run: pnpm audit
+
+      - name: Run frontend linter (ESLint)
+        working-directory: frontend
+        run: pnpm lint
+
       - name: Run frontend unit tests
         working-directory: frontend
         run: pnpm test
+
+      - name: Build frontend application (Next.js & TypeScript)
+        working-directory: frontend
+        run: pnpm build
 
   backend-portable:
     name: Backend Portable Test Suite (Fast Unit & QC Gates)
@@ -60,6 +72,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
+          pip install pip-audit
+
+      - name: Verify Python dependency security (pip-audit)
+        run: pip-audit -r backend/requirements.txt
 
       - name: Run portable test suite
         run: |

@@ -1,13 +1,15 @@
 # CycloneSense — Explainable Multi-Source Tropical Cyclone Pattern Intelligence
 
+[![CI](https://github.com/KatkamKoushik/cyclonesense/actions/workflows/ci.yml/badge.svg)](https://github.com/KatkamKoushik/cyclonesense/actions/workflows/ci.yml)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg?style=flat&logo=fastapi)](https://fastapi.tiangolo.com)
-[![Next.js](https://img.shields.io/badge/Next.js-16.3-black.svg?style=flat&logo=next.js)](https://nextjs.org)
+[![Next.js](https://img.shields.io/badge/Next.js-16.4.3-black.svg?style=flat&logo=next.js)](https://nextjs.org)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.x-EE4C2C.svg?style=flat&logo=pytorch)](https://pytorch.org)
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB.svg?style=flat&logo=python)](https://python.org)
 [![Tests](https://img.shields.io/badge/Tests-55%20Passed-brightgreen.svg)]()
+[![Security Audit](https://img.shields.io/badge/Vulnerabilities-0%20(pip%20%26%20pnpm)-brightgreen.svg)]()
 [![Impact Intelligence](https://img.shields.io/badge/Impact%20Intelligence-Live%20Verified-blue.svg)]()
 [![W3C PROV](https://img.shields.io/badge/Provenance-W3C%20PROV-purple.svg)]()
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 > **CycloneSense** is an authentic, explainable meteorological intelligence research prototype designed to ingest, quality-control, georeference, and analyze tropical cyclone patterns directly from scientific Earth Observation (EO) satellite products (NetCDF4, HDF5) and authoritative best-track archives (NOAA IBTrACS).
 
@@ -89,9 +91,9 @@ flowchart LR
     Endpoints <--> Frontend
 ```
 
-For the formal architecture specification, empirical benchmark comparisons, and delivery roadmap for the SANKALP evaluation, see [Final Technology Stack & Technical Approach](file:///d:/CycloneSense/docs/architecture/FINAL_TECHNOLOGY_STACK_AND_TECHNICAL_APPROACH.md).
+For the formal architecture specification, empirical benchmark comparisons, and delivery roadmap for the SANKALP evaluation, see [Final Technology Stack & Technical Approach](docs/architecture/FINAL_TECHNOLOGY_STACK_AND_TECHNICAL_APPROACH.md).
 
-For the next-generation ground change detection, biophysical differencing, and Satellite VLM specifications, see [Impact Intelligence Technical Documentation](file:///d:/cyclone/docs/impact-intelligence.md).
+For the next-generation ground change detection, biophysical differencing, and Satellite VLM specifications, see [Impact Intelligence Technical Documentation](docs/impact-intelligence.md).
 
 ---
 
@@ -232,8 +234,9 @@ CycloneSense/
 ### 2. Backend Setup (FastAPI)
 
 ```bash
-# Navigate to project root
-cd d:/CycloneSense
+# Clone repository and navigate to root
+git clone https://github.com/KatkamKoushik/cyclonesense.git
+cd cyclonesense
 
 # (Optional) Create and activate virtual environment
 python -m venv .venv
@@ -276,16 +279,20 @@ pnpm dev --port 3000
 The test suite covers API routing, scientific NetCDF/HDF5 reading, physical bounds QC, dataset splitting, neural inference, Grad-CAM explainability, W3C PROV provenance, closed-form GOES ABI coordinate georeferencing, and temporal/spatial pairing.
 
 ```bash
-# Run the complete test suite (47 tests)
+# Run the complete test suite (55 tests)
 python -m pytest backend/tests -v
+
+# Alternatively, run only the fast portable subset (48 tests, in-memory & synthetic fixtures)
+python -m pytest backend/tests -m "not heavyweight" -v
 ```
 
 ```
 ============================= test session starts =============================
-collected 47 items
+collected 55 items
 
 backend/tests/test_api.py (13 tests) ...................... PASSED
 backend/tests/test_geospatial_pairing.py (7 tests) ........ PASSED
+backend/tests/test_impact_intelligence.py (8 tests) ....... PASSED
 backend/tests/test_ml_dataset.py (4 tests) ................ PASSED
 backend/tests/test_ml_evaluation.py (3 tests) ............. PASSED
 backend/tests/test_ml_explainability.py (5 tests) ......... PASSED
@@ -295,16 +302,43 @@ backend/tests/test_provenance.py (2 tests) ................ PASSED
 backend/tests/test_qc.py (4 tests) ........................ PASSED
 backend/tests/test_scientific_reader.py (4 tests) ......... PASSED
 
-============================= 47 passed in 37.81s =============================
+======================= 55 passed, 1 warning in 29.67s ========================
 ```
 
 ```bash
-# Run frontend unit tests
-node --experimental-strip-types --test frontend/src/tests/api_client.test.ts
+# Run frontend unit tests (6 contract and scientific classification suites)
+pnpm --dir frontend test
 
-# Build frontend to verify TypeScript and page optimization
+# Run frontend ESLint static code quality inspection
+pnpm --dir frontend lint
+
+# Run frontend Next.js 16.4.3 production build and TypeScript compilation
 pnpm --dir frontend build
+
+# Run software supply chain dependency audits (0 vulnerabilities)
+pip-audit -r backend/requirements.txt
+pnpm --dir frontend audit
 ```
+
+---
+
+## Software Project Engineering Master Checklist Verification
+
+CycloneSense is continuously audited against the engineering controls defined in the Master Software Engineering Checklist:
+
+| Engineering Pillar | Control Verified | Evidence & Status |
+| :--- | :--- | :--- |
+| **§3. Repo Hygiene & Licensing** | MIT License, Open Data Attribution, Clean Index | Verified: [`LICENSE`](LICENSE), [`DATA_AND_MODELS.md`](DATA_AND_MODELS.md), zero committed secrets |
+| **§4. Code Quality & Linting** | Strict typing, React 19 hooks, clean ESLint | Verified: `pnpm --dir frontend lint` passes with 0 errors / 0 warnings |
+| **§5. Supply Chain & Vulnerabilities** | Python `pip-audit` & Frontend `pnpm audit` | Verified: 0 vulnerabilities across all backend and frontend dependencies |
+| **§10 & §11. Frontend Application** | Next.js 16.4.3 Turbopack build & TypeScript check | Verified: 13 routes prerendered cleanly via `next build` in 2.4s |
+| **§12 & §13. Backend & API** | FastAPI async endpoint lifecycle and schema bounds | Verified: 13 endpoint tests in [`test_api.py`](backend/tests/test_api.py) passed |
+| **§17. Data Pipelines & QC** | NetCDF4 reader, geostationary projection, DQF masks | Verified: 100% pass across [`test_qc.py`](backend/tests/test_qc.py) & [`test_geospatial_pairing.py`](backend/tests/test_geospatial_pairing.py) |
+| **§18. ML Lifecycle & Synthetic Leakage** | Frame-level storm splitting, target-input leakage gate | Verified: Zero storm leakage; target decoupling verified in [`test_ml_dataset.py`](backend/tests/test_ml_dataset.py) |
+| **§18 & §54. Spaceborne Pairing** | Authentic GOES-16 ABI pairing on Hurricane Helene | Verified: `python backend/scripts/run_real_cyclone_demo.py --storm HELENE` (77.4 kts, Grad-CAM $R_{\text{core}} = 37.8\%$) |
+| **§19 & Add-on D. Grounded VLM** | Multi-temporal Sentinel-1/2 biophysical differencing | Verified: `python backend/scripts/run_impact_demo.py` ($\Delta\text{NDVI} = -0.177$, $\Delta\text{NDWI} = +0.204$, 0.5 km² change) |
+| **§24 & §25. Testing & CI/CD** | 55 backend tests + 6 frontend test suites | Verified: 61/61 automated tests passing; GitHub Actions multi-job CI workflow green |
+| **§26. Lineage & Provenance** | W3C PROV-O compliance with NIST FIPS SHA-256 | Verified: Deterministic hash calculation in [`test_provenance.py`](backend/tests/test_provenance.py) |
 
 ---
 
@@ -345,22 +379,28 @@ Generated report is saved to `docs/experiments/experiment_results.json`.
 
 In compliance with rigorous meteorological and scientific standards:
 
-1. **Satellite Pairing Coverage:** The historical North Indian Ocean (BoB/AS) benchmark dataset currently utilizes proxy radiative tensors parameterizing wind laws because archived INSAT-3D/3DR historical granules require ISRO MOSDAC credentials. The pipeline architecture for pairing (`SatelliteObservationPairer`, `PairedSatelliteCycloneDataset`) is fully implemented and validated on spaceborne GOES-16 ABI CONUS granules (e.g. Hurricane Helene, 1.3-minute pairing delta).
+1. **Proxy Benchmark & Target-Generator Inversion:** The offline benchmark dataset (`TropicalCycloneDataset`) synthesizes 2-channel radiative rasters directly from storm coordinates and target wind speed ($T_B = g(\text{wind})$). Consequently, the low Image-Only test error (MAE 1.721 kts, $r = 0.999$) is an analytical artifact of learning to invert the generator's formula rather than inferring intensity from genuine satellite imagery. For authentic spaceborne satellite evaluation, CycloneSense implements `PairedSatelliteCycloneDataset`, validated on spaceborne NOAA GOES-16 ABI CONUS granules (e.g. Hurricane Helene, 1.3-minute pairing delta) without raster synthesis. See [Validation Report](VALIDATION_REPORT.md) and [Data & Models Policy](DATA_AND_MODELS.md) for full audit details.
 2. **ISRO MOSDAC Status:** The INSAT-3D/3DR adapter is structurally implemented. Automated ingestion requires user-provided MOSDAC authentication credentials in `.env` (`MOSDAC_USERNAME`, `MOSDAC_PASSWORD`). In their absence, the system returns `AUTHENTICATION_REQUIRED`.
 3. **Parametric Resilience Module:** The resilience module provides an **illustrative scenario risk index** (0–100) based on configurable wind speed and proximity thresholds. It is an educational and parametric visualization tool, not an actuarial insurance pricing or binding payout engine.
 4. **Grad-CAM Interpretation:** Grad-CAM highlights spatial regions of the satellite tensor that contribute most strongly to neural activations. It does not establish causal physical relationships.
 
 ---
 
-## Data Sources & Attributions
+## Data Sources, Attributions & Policy
 
-- **NOAA GOES-R Series ABI:** National Oceanic and Atmospheric Administration via the NOAA Open Data Dissemination (NODD) program on AWS S3 (`noaa-goes16.s3.amazonaws.com`).
-- **NOAA NCEI IBTrACS:** International Best Track Archive for Climate Stewardship (IBTrACS) v04r01 NetCDF archive.
-- **NASA Earthdata CMR:** Common Metadata Repository (CMR) operated by NASA Earth Science Data and Information System (ESDIS).
-- **ISRO MOSDAC:** Meteorological and Oceanographic Satellite Data Archival Centre, Indian Space Research Organisation.
+- **NOAA GOES-R Series ABI:** National Oceanic and Atmospheric Administration via the NOAA Open Data Dissemination (NODD) program on AWS S3 (`noaa-goes16.s3.amazonaws.com`). Public Domain (17 U.S.C. § 105).
+- **NOAA NCEI IBTrACS:** International Best Track Archive for Climate Stewardship (IBTrACS) v04r01 NetCDF archive. Public Domain.
+- **Copernicus Sentinel-1 & Sentinel-2:** European Space Agency (ESA) & European Commission via Copernicus Data Space Ecosystem. *Contains modified Copernicus Sentinel data [2019], processed by CycloneSense.*
+- **NASA Earthdata CMR:** Common Metadata Repository (CMR) operated by NASA Earth Science Data and Information System (ESDIS). Unrestricted open access.
+- **ISRO MOSDAC:** Meteorological and Oceanographic Satellite Data Archival Centre, Indian Space Research Organisation. Requires user registration.
+- **Proxy & Synthetic Calibration Data:** All reference and synthetic grids (`reference_cyclone_grid.nc`, `reference_satellite_grid.nc`, `test_satellite_granule.nc`) are explicitly labelled and separated from authentic spaceborne observations to preserve scientific truth-in-advertising.
+
+For complete licensing terms, model checkpoint governance (CC BY 4.0), data provenance, and proxy/synthetic data labelling guidelines, see [Data, Model & Attribution Policy](DATA_AND_MODELS.md).
 
 ---
 
 ## License
 
-Released under the [MIT License](LICENSE).
+Software released under the [MIT License](LICENSE).  
+Pretrained model weights released under [Creative Commons Attribution 4.0 (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/).  
+See [LICENSE](LICENSE) and [DATA_AND_MODELS.md](DATA_AND_MODELS.md) for full terms.

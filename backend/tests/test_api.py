@@ -352,6 +352,7 @@ async def test_explainability_analyze_endpoint():
         assert "environmental_attribution" in data
 
 
+@pytest.mark.heavyweight
 @pytest.mark.asyncio
 async def test_system_settings_and_adapter_test():
     transport = ASGITransport(app=app)
@@ -378,6 +379,7 @@ async def test_system_settings_and_adapter_test():
         assert nasa_test_resp.json()["status"] in ["ONLINE", "CONNECTED"]
 
 
+@pytest.mark.heavyweight
 @pytest.mark.asyncio
 async def test_realtime_satellite_search_endpoints():
     transport = ASGITransport(app=app)

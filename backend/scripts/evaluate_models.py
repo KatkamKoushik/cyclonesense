@@ -160,8 +160,31 @@ def evaluate_authoritative_suite() -> Dict[str, Any]:
         }
     }
 
+    scientific_fidelity_audit = {
+        "synthetic_input_target_leakage_finding": (
+            "CRITICAL SCIENTIFIC AUDIT: In TropicalCycloneDataset, multi-channel raster inputs are "
+            "synthesized directly from the target label (obs.wind_kts) via analytical vortex equations "
+            "(eyewall cooling and eye warming parameterizing wind speed). The neural models therefore learn "
+            "to invert the generator's formula rather than infer cyclone intensity from genuine spaceborne "
+            "satellite observations. While storm-level temporal splitting prevents observation sharing across "
+            "partitions, it cannot eliminate the deterministic target signal baked into each synthetic raster. "
+            "Consequently, the low test MAE (1.721 kts) and correlation (0.999) are mathematical artifacts of "
+            "analytical formula inversion and MUST NOT be cited as evidence of real-world satellite predictive skill."
+        ),
+        "modality_authenticity_breakdown": {
+            "baseline_cliper": "AUTHENTIC: Evaluated on genuine NOAA IBTrACS kinematic & climatological covariates (Test MAE 7.766 kts, RMSE 9.665 kts).",
+            "environment_only": "AUTHENTIC: Evaluated on 8 authentic IBTrACS atmospheric/kinematic covariates (Test MAE 9.993 kts, RMSE 14.317 kts).",
+            "image_only": "SYNTHETIC PROXY: Evaluated on proxy rasters generated from target wind_kts. Metrics reflect generator inversion.",
+            "multimodal_fusion": "HYBRID PROXY: Evaluated on authentic environmental covariates combined with synthetic proxy rasters.",
+        },
+        "authentic_satellite_pathway": (
+            "For genuine Earth Observation satellite evaluation, use PairedSatelliteCycloneDataset "
+            "with authentic spaceborne NOAA GOES-16 ABI or Sentinel-1/2 NetCDF granules."
+        ),
+    }
+
     consolidated_report = {
-        "report_version": "2.0.0-reconciled",
+        "report_version": "2.1.0-audited",
         "timestamp_utc": datetime.now(timezone.utc).isoformat(),
         "dataset": {
             "source": stats["source_file"],
@@ -171,6 +194,7 @@ def evaluate_authoritative_suite() -> Dict[str, Any]:
         },
         "models_evaluated": models_report,
         "metrics_reconciliation": reconciliation_notes,
+        "scientific_fidelity_audit": scientific_fidelity_audit,
     }
 
     with open(results_file, "w", encoding="utf-8") as f:

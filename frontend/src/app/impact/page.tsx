@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   IconSatellite,
   IconActivity,
@@ -8,9 +8,7 @@ import {
   IconSparkles,
   IconRefresh,
   IconAlert,
-  IconCheck,
   IconInfo,
-  IconCompare,
   IconSearch,
 } from "@/components/icons";
 import {
@@ -20,7 +18,6 @@ import {
   ImpactIntelligenceReport,
   ImpactQuestionResponse,
   BeforeAfterPairInfo,
-  EvidenceCitation,
 } from "@/lib/api";
 
 type SensorMode = "OPTICAL" | "SAR";
@@ -101,7 +98,7 @@ export default function ImpactIntelligencePage() {
         answer: report.ai_grounded_answer,
         retrieved_evidence_layers: report.ai_grounded_answer.citations.map((c) => c.derived_layer_evaluated),
         cyclone_context: report.cyclone_context,
-        change_metrics: report.change_summary.classes as any,
+        change_metrics: report.change_summary.classes,
         execution_time_ms: 142.5,
       });
     } catch (err: unknown) {
@@ -113,9 +110,17 @@ export default function ImpactIntelligencePage() {
   }, []);
 
   useEffect(() => {
+    let isCancelled = false;
     if (selectedCyclone && selectedLocation) {
-      fetchPairAndAnalyze(selectedCyclone, selectedLocation, sensorType);
+      queueMicrotask(() => {
+        if (!isCancelled) {
+          fetchPairAndAnalyze(selectedCyclone, selectedLocation, sensorType);
+        }
+      });
     }
+    return () => {
+      isCancelled = true;
+    };
   }, [selectedCyclone, selectedLocation, sensorType, fetchPairAndAnalyze]);
 
   // Handle Natural Language Query

@@ -28,6 +28,7 @@ def test_category_mapping():
     assert wind_to_category(130.0) == 4  # Super Cyclonic Storm
 
 
+@pytest.mark.heavyweight
 def test_dataset_sample_counts_and_missing_data(ibtracs_data):
     obs, stats = ibtracs_data
     assert len(obs) > 500

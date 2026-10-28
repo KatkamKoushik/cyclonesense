@@ -946,7 +946,7 @@ export interface ImpactQuestionResponse {
   answer: GroundedAnswerResult;
   retrieved_evidence_layers: string[];
   cyclone_context?: CycloneLandfallContext;
-  change_metrics?: Record<string, ChangeClassMetrics>;
+  change_metrics?: Record<string, ChangeClassMetrics | undefined>;
   execution_time_ms: number;
 }
 

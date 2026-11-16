@@ -155,6 +155,18 @@ class SARProcessor:
             water_mask: Boolean array (True = Inundated / Standing water proxy).
             inundation_percentage: Percentage of spatial window showing water expansion.
         """
+        orig_shape = post_vv_db.shape
+        if HAS_RUST_CORE and cs_core is not None:
+            c_pre = np.ascontiguousarray(pre_vv_db, dtype=np.float32)
+            c_post = np.ascontiguousarray(post_vv_db, dtype=np.float32)
+            mask, pct = cs_core.fast_sar_flood_inundation_mask(
+                c_pre,
+                c_post,
+                water_threshold=cls.OPEN_WATER_UPPER_THRESHOLD_DB,
+                drop_threshold=cls.WATER_INUNDATION_DROP_THRESHOLD_DB,
+            )
+            return mask.reshape(orig_shape), pct
+
         delta_vv = post_vv_db - pre_vv_db
         water_mask = (post_vv_db <= cls.OPEN_WATER_UPPER_THRESHOLD_DB) & (delta_vv <= cls.WATER_INUNDATION_DROP_THRESHOLD_DB)
         inundation_pct = float(np.mean(water_mask) * 100.0) if water_mask.size > 0 else 0.0

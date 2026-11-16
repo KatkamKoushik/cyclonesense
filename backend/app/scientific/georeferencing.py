@@ -124,6 +124,72 @@ class SatelliteGeoreferencer:
         return float(lat), float(lon)
 
     @classmethod
+    def batch_latlon_to_abi_angles(
+        cls,
+        lats: np.ndarray,
+        lons: np.ndarray,
+        lon_0_deg: float = -75.0,
+        h: float = DEFAULT_HEIGHT,
+        req: float = DEFAULT_REQ,
+        rpol: float = DEFAULT_RPOL,
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """
+        Batch transformation of coordinates to ABI scanning angles.
+        Utilizes multi-threaded Rayon execution when cyclonesense_core is available.
+        Returns: (xs, ys, valid_mask).
+        """
+        if HAS_RUST_CORE and cs_core is not None:
+            c_lats = np.ascontiguousarray(lats, dtype=np.float64)
+            c_lons = np.ascontiguousarray(lons, dtype=np.float64)
+            return cs_core.batch_latlon_to_abi_angles(c_lats, c_lons, lon_0_deg, h, req, rpol)
+
+        flat_lats = lats.flatten()
+        flat_lons = lons.flatten()
+        xs = np.full(flat_lats.shape, np.nan, dtype=np.float64)
+        ys = np.full(flat_lats.shape, np.nan, dtype=np.float64)
+        valid = np.zeros(flat_lats.shape, dtype=bool)
+        for i, (lat, lon) in enumerate(zip(flat_lats, flat_lons)):
+            x, y = cls.latlon_to_abi_angles(lat, lon, lon_0_deg, h, req, rpol)
+            if x is not None and y is not None:
+                xs[i] = x
+                ys[i] = y
+                valid[i] = True
+        return xs.reshape(lats.shape), ys.reshape(lats.shape), valid.reshape(lats.shape)
+
+    @classmethod
+    def batch_abi_angles_to_latlon(
+        cls,
+        xs: np.ndarray,
+        ys: np.ndarray,
+        lon_0_deg: float = -75.0,
+        h: float = DEFAULT_HEIGHT,
+        req: float = DEFAULT_REQ,
+        rpol: float = DEFAULT_RPOL,
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """
+        Batch transformation of ABI angles to WGS84 coordinates.
+        Utilizes multi-threaded Rayon execution when cyclonesense_core is available.
+        Returns: (lats, lons, valid_mask).
+        """
+        if HAS_RUST_CORE and cs_core is not None:
+            c_xs = np.ascontiguousarray(xs, dtype=np.float64)
+            c_ys = np.ascontiguousarray(ys, dtype=np.float64)
+            return cs_core.batch_abi_angles_to_latlon(c_xs, c_ys, lon_0_deg, h, req, rpol)
+
+        flat_xs = xs.flatten()
+        flat_ys = ys.flatten()
+        lats = np.full(flat_xs.shape, np.nan, dtype=np.float64)
+        lons = np.full(flat_xs.shape, np.nan, dtype=np.float64)
+        valid = np.zeros(flat_xs.shape, dtype=bool)
+        for i, (x, y) in enumerate(zip(flat_xs, flat_ys)):
+            lat, lon = cls.abi_angles_to_latlon(x, y, lon_0_deg, h, req, rpol)
+            if lat is not None and lon is not None:
+                lats[i] = lat
+                lons[i] = lon
+                valid[i] = True
+        return lats.reshape(xs.shape), lons.reshape(xs.shape), valid.reshape(xs.shape)
+
+    @classmethod
     def inspect_granule_geospatial(cls, filepath: Union[str, Path]) -> Dict[str, Any]:
         """
         Inspects satellite granule coordinates, projection metadata, and geographic coverage bounds.

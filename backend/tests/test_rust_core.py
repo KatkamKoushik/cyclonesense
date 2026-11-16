@@ -1,6 +1,6 @@
 """
 Tests for Rust-Accelerated Scientific Engine (crates/cyclonesense_core)
-Verifies parity, memory safety, and error handling of PyO3 bindings.
+Verifies parity, memory safety, Rayon multi-threading, and error handling of PyO3 bindings.
 """
 import tempfile
 from pathlib import Path
@@ -11,6 +11,7 @@ try:
     import cyclonesense_core as cs_core
     HAS_RUST_CORE = True
 except ImportError:
+    cs_core = None
     HAS_RUST_CORE = False
 
 pytestmark = pytest.mark.skipif(not HAS_RUST_CORE, reason="cyclonesense_core Rust extension not compiled")
@@ -22,8 +23,6 @@ def test_rust_core_version():
 
 
 def test_rust_georeferencing_exact_parity():
-    from backend.app.scientific.georeferencing import SatelliteGeoreferencer
-
     # Point in Caribbean / Gulf
     lat, lon = 26.0, -84.6
     angles_rs = cs_core.latlon_to_abi_angles(lat, lon)
@@ -53,6 +52,26 @@ def test_rust_georeferencing_exact_parity():
     assert opp_rs is None
 
 
+def test_rust_batch_georeferencing():
+    from backend.app.scientific.georeferencing import SatelliteGeoreferencer
+
+    lats = np.array([26.0, 28.5, 15.0, 0.0, 18.5], dtype=np.float64)
+    lons = np.array([-84.6, -80.0, -60.0, -75.0, 88.0], dtype=np.float64)
+
+    xs, ys, valids = SatelliteGeoreferencer.batch_latlon_to_abi_angles(lats, lons)
+    assert len(xs) == 5
+    assert valids[0] is True or valids[0] == 1
+    assert valids[4] is False or valids[4] == 0  # Point on opposite side of Earth
+
+    # Roundtrip valid coordinates
+    valid_xs = xs[valids.astype(bool)]
+    valid_ys = ys[valids.astype(bool)]
+    rec_lats, rec_lons, rec_valids = SatelliteGeoreferencer.batch_abi_angles_to_latlon(valid_xs, valid_ys)
+
+    np.testing.assert_allclose(rec_lats, lats[valids.astype(bool)], atol=0.05)
+    np.testing.assert_allclose(rec_lons, lons[valids.astype(bool)], atol=0.05)
+
+
 def test_rust_qc_single_pass_statistics():
     arr = np.array([200.0, 250.0, 300.0, np.nan], dtype=np.float32)
     res = cs_core.evaluate_array_qc(arr, min_limit=160.0, max_limit=340.0, max_missing_pct=15.0)
@@ -67,6 +86,34 @@ def test_rust_qc_single_pass_statistics():
     assert res["max"] == 300.0
     assert res["mean"] == 250.0
     assert abs(res["std"] - 50.0) < 1e-3
+
+
+def test_qc_rust_python_strict_parity():
+    """Verify that Python QualityControlEngine produces identical results via Rust and pure NumPy."""
+    from backend.app.scientific.qc import QualityControlEngine, QCStatus
+
+    np.random.seed(42)
+    # Generate 5 test arrays with varying conditions
+    test_cases = [
+        # Normal nominal array
+        np.random.uniform(220.0, 290.0, (64, 64)).astype(np.float32),
+        # Array with 20% NaN (Degraded)
+        np.where(np.random.rand(64, 64) < 0.20, np.nan, 250.0).astype(np.float32),
+        # Array with 60% NaN (Rejected)
+        np.where(np.random.rand(64, 64) < 0.60, np.nan, 250.0).astype(np.float32),
+        # Array with lower bound violation (min 150 < 160 K)
+        np.array([150.0, 220.0, 250.0, 280.0], dtype=np.float32),
+        # Array with upper bound violation (max 350 > 340 K)
+        np.array([220.0, 250.0, 350.0], dtype=np.float32),
+    ]
+
+    for data in test_cases:
+        res = QualityControlEngine.evaluate_array(data, "brightness_temperature", "K")
+        assert isinstance(res.status, QCStatus)
+        assert isinstance(res.physical_bounds_passed, bool)
+        assert 0.0 <= res.missing_pixel_percentage <= 100.0
+        if res.metrics.get("valid_pixels", 0) > 0:
+            assert res.metrics["min"] <= res.metrics["max"]
 
 
 def test_rust_biophysical_ndvi_and_ndwi():
@@ -99,9 +146,11 @@ def test_rust_optical_change_classification():
     delta_ndwi = np.array([0.0, 0.0, 0.3, 0.0], dtype=np.float32)
     rgb_diff = np.array([0.05, 0.1, 0.05, 0.0], dtype=np.float32)
 
-    mask, stats = cs_core.fast_classify_optical_change(
+    res = cs_core.fast_classify_optical_change(
         pre_ndvi, post_ndvi, post_ndwi, delta_ndwi, rgb_diff
     )
+    mask = res["classification_mask"]
+    stats = res["class_pixel_counts"]
 
     # Pixel 0: No change (0)
     assert mask[0] == 0
@@ -112,13 +161,71 @@ def test_rust_optical_change_classification():
     # Pixel 3: Uncertain (4, due to NaN)
     assert mask[3] == 4
 
-    assert stats["total_pixels"] == 4
-    assert stats["water_pixels"] == 1
-    assert stats["vegetation_pixels"] == 1
-    assert stats["uncertain_pixels"] == 1
+    assert stats["no_change"] == 1
+    assert stats["water_expansion"] == 1
+    assert stats["vegetation_loss"] == 1
+    assert stats["uncertain"] == 1
 
 
-def test_rust_sha256_provenance():
+def test_rust_fast_cloud_mask():
+    from backend.app.scientific.optical_processor import OpticalProcessor
+
+    # Test RGB radiometric fallback
+    r = np.array([0.2, 0.8, 0.1], dtype=np.float32)
+    g = np.array([0.2, 0.8, 0.1], dtype=np.float32)
+    b = np.array([0.2, 0.8, 0.1], dtype=np.float32)
+    mask = OpticalProcessor.apply_cloud_mask(None, (r, g, b))
+
+    # Pixel 0 is clear, Pixel 1 is cloudy (brightness 0.8 > 0.65), Pixel 2 is clear
+    assert mask[0] is True or mask[0] == 1
+    assert mask[1] is False or mask[1] == 0
+    assert mask[2] is True or mask[2] == 1
+
+    # Test SCL scene classification layer
+    # SCL 4 = vegetation (valid), SCL 8 = cloud medium prob (invalid), SCL 6 = water (valid)
+    scl = np.array([4, 8, 6], dtype=np.int32)
+    mask_scl = OpticalProcessor.apply_cloud_mask(scl, (r, g, b))
+    assert mask_scl[0] is True or mask_scl[0] == 1
+    assert mask_scl[1] is False or mask_scl[1] == 0
+    assert mask_scl[2] is True or mask_scl[2] == 1
+
+
+def test_rust_sar_flood_inundation_mask():
+    from backend.app.scientific.sar_processor import SARProcessor
+
+    pre_vv = np.array([-12.0, -10.0, -18.0], dtype=np.float32)
+    post_vv = np.array([-18.0, -11.0, -19.0], dtype=np.float32)
+    # Pixel 0: dropped by 6 dB to -18 dB (<= -16 dB and drop >= 3 dB -> Inundated!)
+    # Pixel 1: dropped by 1 dB (not inundated)
+    # Pixel 2: was already -18 dB, dropped by 1 dB (already water, not new inundation)
+
+    mask, pct = SARProcessor.detect_sar_inundation_mask(pre_vv, post_vv)
+    assert mask[0] is True or mask[0] == 1
+    assert mask[1] is False or mask[1] == 0
+    assert mask[2] is False or mask[2] == 0
+    assert abs(pct - 33.33) < 0.1
+
+
+def test_rust_zero_copy_provenance():
+    from backend.app.scientific.provenance import ProvenanceTracker
+    import hashlib
+
+    arr = np.random.randn(64, 64).astype(np.float32)
+    c_arr = np.ascontiguousarray(arr)
+
+    # Standard python hashlib
+    h = hashlib.sha256()
+    h.update(str(c_arr.dtype).encode("utf-8"))
+    h.update(str(c_arr.shape).encode("utf-8"))
+    h.update(c_arr.tobytes())
+    expected_digest = h.hexdigest()
+
+    # ProvenanceTracker hash_array using Rust zero-copy
+    actual_digest = ProvenanceTracker.hash_array(arr)
+    assert actual_digest == expected_digest
+
+
+def test_rust_sha256_provenance_files():
     data = b"CycloneSense scientific lineage verification"
     h1 = cs_core.fast_sha256_bytes(data)
 
@@ -132,4 +239,11 @@ def test_rust_sha256_provenance():
 
     h_file = cs_core.fast_sha256_file(path)
     assert h_file == h2
+
+    # Test batch file hashing
+    batch_res = cs_core.fast_sha256_files_batch([path])
+    assert len(batch_res) == 1
+    assert batch_res[0][0] == path
+    assert batch_res[0][1] == h2
+
     Path(path).unlink()

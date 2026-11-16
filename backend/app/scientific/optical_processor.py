@@ -199,6 +199,15 @@ class OpticalProcessor:
         SCL classes: 3=Cloud Shadow, 8=Cloud medium prob, 9=Cloud high prob, 10=Thin Cirrus.
         """
         red, green, blue = rgb_bands
+        orig_shape = red.shape
+
+        if HAS_RUST_CORE and cs_core is not None:
+            c_red = np.ascontiguousarray(red, dtype=np.float32)
+            c_green = np.ascontiguousarray(green, dtype=np.float32)
+            c_blue = np.ascontiguousarray(blue, dtype=np.float32)
+            c_scl = np.ascontiguousarray(scl_band, dtype=np.int32) if scl_band is not None else None
+            return cs_core.fast_cloud_mask(c_red, c_green, c_blue, c_scl).reshape(orig_shape)
+
         if scl_band is not None:
             # SCL mask: reject invalid (0), saturated (1), cloud shadow (3), cloud (8, 9), cirrus (10)
             invalid_classes = {0, 1, 3, 8, 9, 10}

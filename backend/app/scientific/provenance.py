@@ -37,11 +37,18 @@ class ProvenanceTracker:
     @staticmethod
     def hash_array(array: np.ndarray) -> str:
         """Calculate SHA-256 digest of a numerical tensor (bytes + dtype + shape)."""
+        c_arr = np.ascontiguousarray(array)
+        if HAS_RUST_CORE and cs_core is not None:
+            # Zero-copy buffer hashing directly from numpy memoryview via SHA-NI
+            try:
+                return cs_core.fast_sha256_buffer(c_arr.view(np.uint8), str(c_arr.dtype), str(c_arr.shape))
+            except Exception:
+                pass
         hasher = hashlib.sha256()
-        hasher.update(str(array.dtype).encode("utf-8"))
-        hasher.update(str(array.shape).encode("utf-8"))
+        hasher.update(str(c_arr.dtype).encode("utf-8"))
+        hasher.update(str(c_arr.shape).encode("utf-8"))
         # Use contiguous buffer for deterministic hashing
-        hasher.update(np.ascontiguousarray(array).tobytes())
+        hasher.update(c_arr.tobytes())
         return hasher.hexdigest()
 
     @classmethod

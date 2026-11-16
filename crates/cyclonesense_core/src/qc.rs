@@ -20,13 +20,16 @@ pub struct FastQCResult {
 /// Single-pass streaming evaluation of a float32 satellite raster.
 /// Uses Welford's online algorithm for variance/std to avoid multiple passes.
 /// Operates without intermediate memory allocations and releases the Python GIL during compute.
+/// Enforces complete behavioral parity with Python QualityControlEngine.
 #[pyfunction]
-#[pyo3(signature = (data, min_limit=None, max_limit=None, max_missing_pct=15.0))]
+#[pyo3(signature = (data, min_limit=None, max_limit=None, variable_name="array", unit="", max_missing_pct=15.0))]
 pub fn evaluate_array_qc<'py>(
     py: Python<'py>,
     data: PyReadonlyArrayDyn<'py, f32>,
     min_limit: Option<f64>,
     max_limit: Option<f64>,
+    variable_name: &str,
+    unit: &str,
     max_missing_pct: f64,
 ) -> PyResult<Bound<'py, PyDict>> {
     let slice = data.as_slice()?;
@@ -37,12 +40,19 @@ pub fn evaluate_array_qc<'py>(
         dict.set_item("status", "REJECTED")?;
         dict.set_item("physical_bounds_passed", false)?;
         dict.set_item("missing_pixel_percentage", 100.0)?;
-        dict.set_item("anomalies", vec!["Array has 0 elements"])?;
+        dict.set_item("anomalies", vec!["Array has 0 elements".to_string()])?;
         dict.set_item("total_pixels", 0)?;
         dict.set_item("valid_pixels", 0)?;
         dict.set_item("missing_pixels", 0)?;
+        dict.set_item("min", 0.0)?;
+        dict.set_item("max", 0.0)?;
+        dict.set_item("mean", 0.0)?;
+        dict.set_item("std", 0.0)?;
         return Ok(dict);
     }
+
+    let var_name = variable_name.to_string();
+    let unit_str = unit.to_string();
 
     // Release GIL for compute-heavy pass
     let res = py.allow_threads(move || {
@@ -54,8 +64,6 @@ pub fn evaluate_array_qc<'py>(
         let mut count = 0usize;
         let mut mean = 0.0f64;
         let mut m2 = 0.0f64;
-
-        let mut out_of_bounds_count = 0usize;
 
         for &val in slice {
             if val.is_nan() || val.is_infinite() {
@@ -75,17 +83,6 @@ pub fn evaluate_array_qc<'py>(
                 mean += delta / (count as f64);
                 let delta2 = v - mean;
                 m2 += delta * delta2;
-
-                if let Some(low) = min_limit {
-                    if v < low {
-                        out_of_bounds_count += 1;
-                    }
-                }
-                if let Some(high) = max_limit {
-                    if v > high {
-                        out_of_bounds_count += 1;
-                    }
-                }
             }
         }
 
@@ -103,25 +100,48 @@ pub fn evaluate_array_qc<'py>(
         if count == 0 {
             bounds_passed = false;
             status = "REJECTED";
-            anomalies.push("All pixels are NaN or Infinite".to_string());
+            anomalies.push(format!("All {} pixels in {} are NaN/missing", total_pixels, var_name));
         } else {
-            if out_of_bounds_count > 0 {
-                bounds_passed = false;
-                status = "REJECTED";
-                if let (Some(low), Some(high)) = (min_limit, max_limit) {
+            if let Some(low) = min_limit {
+                if min_v < low {
+                    bounds_passed = false;
+                    let u = if unit_str.is_empty() { "" } else { &unit_str };
                     anomalies.push(format!(
-                        "Physical bounds violation: {} pixels outside [{:.1}, {:.1}]. Min: {:.2}, Max: {:.2}",
-                        out_of_bounds_count, low, high, min_v, max_v
+                        "Physical lower bound violated for {}: min {:.2} < {} {}",
+                        var_name, min_v, low, u
+                    ).trim_end().to_string());
+                }
+            }
+            if let Some(high) = max_limit {
+                if max_v > high {
+                    bounds_passed = false;
+                    let u = if unit_str.is_empty() { "" } else { &unit_str };
+                    anomalies.push(format!(
+                        "Physical upper bound violated for {}: max {:.2} > {} {}",
+                        var_name, max_v, high, u
+                    ).trim_end().to_string());
+                }
+            }
+
+            // Missing pixel percentage check (exact parity with Python QC)
+            if missing_pct > max_missing_pct {
+                if missing_pct >= 50.0 {
+                    status = "REJECTED";
+                    anomalies.push(format!(
+                        "Excessive missing pixels: {:.1}% exceeds rejection limit (50%)",
+                        missing_pct
+                    ));
+                } else {
+                    status = "DEGRADED";
+                    anomalies.push(format!(
+                        "Elevated missing pixels: {:.1}% exceeds nominal threshold ({:.1}%)",
+                        missing_pct, max_missing_pct
                     ));
                 }
             }
 
-            if missing_pct > max_missing_pct {
-                status = if missing_pct > 30.0 { "REJECTED" } else { "DEGRADED" };
-                anomalies.push(format!(
-                    "Missing pixel percentage ({:.2}%) exceeds maximum allowable threshold ({:.1}%)",
-                    missing_pct, max_missing_pct
-                ));
+            if !bounds_passed && status == "PASSED" {
+                status = "DEGRADED";
             }
         }
 

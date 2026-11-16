@@ -7,7 +7,7 @@ use pyo3::prelude::*;
 
 #[pyfunction]
 fn rust_core_version() -> &'static str {
-    "0.1.0-rust-accelerated"
+    "0.2.0-rust-accelerated"
 }
 
 #[pymodule]
@@ -20,15 +20,21 @@ fn cyclonesense_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // Georeferencing functions
     m.add_function(wrap_pyfunction!(georeferencing::latlon_to_abi_angles, m)?)?;
     m.add_function(wrap_pyfunction!(georeferencing::abi_angles_to_latlon, m)?)?;
+    m.add_function(wrap_pyfunction!(georeferencing::batch_latlon_to_abi_angles, m)?)?;
+    m.add_function(wrap_pyfunction!(georeferencing::batch_abi_angles_to_latlon, m)?)?;
 
     // Biophysical and SAR functions
     m.add_function(wrap_pyfunction!(biophysical::compute_normalized_difference, m)?)?;
     m.add_function(wrap_pyfunction!(biophysical::sar_linear_to_db, m)?)?;
+    m.add_function(wrap_pyfunction!(biophysical::fast_sar_flood_inundation_mask, m)?)?;
+    m.add_function(wrap_pyfunction!(biophysical::fast_cloud_mask, m)?)?;
     m.add_function(wrap_pyfunction!(biophysical::fast_classify_optical_change, m)?)?;
 
     // Cryptographic provenance functions
     m.add_function(wrap_pyfunction!(provenance::fast_sha256_bytes, m)?)?;
+    m.add_function(wrap_pyfunction!(provenance::fast_sha256_buffer, m)?)?;
     m.add_function(wrap_pyfunction!(provenance::fast_sha256_file, m)?)?;
+    m.add_function(wrap_pyfunction!(provenance::fast_sha256_files_batch, m)?)?;
 
     Ok(())
 }
@@ -39,7 +45,7 @@ mod tests {
 
     #[test]
     fn test_rust_core_version_string() {
-        assert_eq!(rust_core_version(), "0.1.0-rust-accelerated");
+        assert_eq!(rust_core_version(), "0.2.0-rust-accelerated");
     }
 
     #[test]

@@ -31,6 +31,10 @@ ENV/
 .pytest_cache/
 .coverage
 htmlcov/
+frontend/test-results/
+frontend/playwright-report/
+test-results/
+playwright-report/
 
 # Node & Next.js
 node_modules/
@@ -47,5 +51,16 @@ frontend/out/
 tools/
 *.pdb
 *.exe
+*.pyd
 dump.rdb
+
+# Rust
+target/
+crates/**/target/
+*.whl
+
+# Ephemeral test ingest files
+backend/data/raw/ingest_*.nc
+backend/data/raw/ingest_*.h5
+
 *.rdb

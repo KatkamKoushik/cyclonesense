@@ -1,6 +1,6 @@
 {
-  "report_version": "2.1.0-audited",
-  "timestamp_utc": "2026-10-27T23:46:34.651797+00:00",
+  "report_version": "3.0.0-audited",
+  "timestamp_utc": "2026-11-16T18:10:25.353493+00:00",
   "dataset": {
     "source": "D:\\CycloneSense\\backend\\data\\raw\\IBTrACS.NI.v04r01.nc",
     "total_observations": 7229,
@@ -70,9 +70,264 @@
       "season_min": 2000
     }
   },
-  "models_evaluated": {
+  "authentic_benchmarks": {
+    "baseline_climatology": {
+      "model_type": "baseline_climatology",
+      "description": "Standard meteorological climatology predicting training mean intensity and modal category.",
+      "train_samples": 4973,
+      "val_evaluation": {
+        "model_type": "baseline_climatology",
+        "train_samples": 4973,
+        "test_samples": 1285,
+        "climatological_mean_kts": 40.34,
+        "climatological_modal_category": 0,
+        "intensity_metrics": {
+          "sample_count": 1285,
+          "mae_kts": 20.729,
+          "rmse_kts": 28.442,
+          "bias_kts": -3.263,
+          "pearson_r": 0.0,
+          "mae_ci": {
+            "low": 19.674,
+            "high": 21.823
+          },
+          "rmse_ci": {
+            "low": 26.872,
+            "high": 30.081
+          }
+        },
+        "classification_metrics": {
+          "sample_count": 1285,
+          "accuracy": 0.4856,
+          "precision_macro": 0.0971,
+          "recall_macro": 0.2,
+          "f1_macro": 0.1307,
+          "f1_weighted": 0.3175
+        },
+        "stratified_metrics": {
+          "Depression (< 34 kts)": {
+            "sample_count": 624,
+            "mae_kts": 16.928,
+            "rmse_kts": 17.754,
+            "bias_kts": 16.928
+          },
+          "Cyclonic Storm (34-63 kts)": {
+            "sample_count": 416,
+            "mae_kts": 7.453,
+            "rmse_kts": 9.659,
+            "bias_kts": -4.284
+          },
+          "Very Severe CS (64-89 kts)": {
+            "sample_count": 114,
+            "mae_kts": 33.887,
+            "rmse_kts": 34.657,
+            "bias_kts": -33.887
+          },
+          "Extremely Severe CS (90-119 kts)": {
+            "sample_count": 92,
+            "mae_kts": 60.474,
+            "rmse_kts": 60.944,
+            "bias_kts": -60.474
+          },
+          "Super Cyclonic Storm (>= 120 kts)": {
+            "sample_count": 39,
+            "mae_kts": 90.941,
+            "rmse_kts": 91.336,
+            "bias_kts": -90.941
+          }
+        }
+      },
+      "test_evaluation": {
+        "model_type": "baseline_climatology",
+        "train_samples": 4973,
+        "test_samples": 971,
+        "climatological_mean_kts": 40.34,
+        "climatological_modal_category": 0,
+        "intensity_metrics": {
+          "sample_count": 971,
+          "mae_kts": 16.706,
+          "rmse_kts": 22.776,
+          "bias_kts": -1.838,
+          "pearson_r": 0.0,
+          "mae_ci": {
+            "low": 15.787,
+            "high": 17.657
+          },
+          "rmse_ci": {
+            "low": 21.264,
+            "high": 24.271
+          }
+        },
+        "classification_metrics": {
+          "sample_count": 971,
+          "accuracy": 0.4552,
+          "precision_macro": 0.091,
+          "recall_macro": 0.2,
+          "f1_macro": 0.1251,
+          "f1_weighted": 0.2848
+        },
+        "stratified_metrics": {
+          "Depression (< 34 kts)": {
+            "sample_count": 442,
+            "mae_kts": 14.988,
+            "rmse_kts": 15.811,
+            "bias_kts": 14.988
+          },
+          "Cyclonic Storm (34-63 kts)": {
+            "sample_count": 375,
+            "mae_kts": 7.026,
+            "rmse_kts": 9.172,
+            "bias_kts": -3.861
+          },
+          "Very Severe CS (64-89 kts)": {
+            "sample_count": 103,
+            "mae_kts": 35.659,
+            "rmse_kts": 36.507,
+            "bias_kts": -35.659
+          },
+          "Extremely Severe CS (90-119 kts)": {
+            "sample_count": 43,
+            "mae_kts": 58.542,
+            "rmse_kts": 59.007,
+            "bias_kts": -58.542
+          },
+          "Super Cyclonic Storm (>= 120 kts)": {
+            "sample_count": 8,
+            "mae_kts": 96.409,
+            "rmse_kts": 96.608,
+            "bias_kts": -96.409
+          }
+        }
+      }
+    },
+    "baseline_persistence": {
+      "model_type": "baseline_persistence",
+      "description": "Standard operational persistence baseline predicting prior observation along chronological storm track (V_t = V_{t-1}).",
+      "train_samples": 4973,
+      "val_evaluation": {
+        "model_type": "baseline_persistence",
+        "train_samples": 4973,
+        "test_samples": 1285,
+        "intensity_metrics": {
+          "sample_count": 1285,
+          "mae_kts": 2.784,
+          "rmse_kts": 4.772,
+          "bias_kts": 0.364,
+          "pearson_r": 0.986,
+          "mae_ci": {
+            "low": 2.581,
+            "high": 3.023
+          },
+          "rmse_ci": {
+            "low": 4.341,
+            "high": 5.233
+          }
+        },
+        "classification_metrics": {
+          "sample_count": 1285,
+          "accuracy": 0.9128,
+          "precision_macro": 0.8763,
+          "recall_macro": 0.8763,
+          "f1_macro": 0.8763,
+          "f1_weighted": 0.9128
+        },
+        "stratified_metrics": {
+          "Depression (< 34 kts)": {
+            "sample_count": 624,
+            "mae_kts": 2.184,
+            "rmse_kts": 4.818,
+            "bias_kts": 0.873
+          },
+          "Cyclonic Storm (34-63 kts)": {
+            "sample_count": 416,
+            "mae_kts": 2.666,
+            "rmse_kts": 3.678,
+            "bias_kts": 0.012
+          },
+          "Very Severe CS (64-89 kts)": {
+            "sample_count": 114,
+            "mae_kts": 4.763,
+            "rmse_kts": 6.073,
+            "bias_kts": -0.167
+          },
+          "Extremely Severe CS (90-119 kts)": {
+            "sample_count": 92,
+            "mae_kts": 4.174,
+            "rmse_kts": 6.024,
+            "bias_kts": -0.152
+          },
+          "Super Cyclonic Storm (>= 120 kts)": {
+            "sample_count": 39,
+            "mae_kts": 4.59,
+            "rmse_kts": 6.411,
+            "bias_kts": -1.256
+          }
+        }
+      },
+      "test_evaluation": {
+        "model_type": "baseline_persistence",
+        "train_samples": 4973,
+        "test_samples": 971,
+        "intensity_metrics": {
+          "sample_count": 971,
+          "mae_kts": 2.439,
+          "rmse_kts": 4.446,
+          "bias_kts": 0.293,
+          "pearson_r": 0.981,
+          "mae_ci": {
+            "low": 2.242,
+            "high": 2.676
+          },
+          "rmse_ci": {
+            "low": 3.953,
+            "high": 5.01
+          }
+        },
+        "classification_metrics": {
+          "sample_count": 971,
+          "accuracy": 0.9207,
+          "precision_macro": 0.8818,
+          "recall_macro": 0.879,
+          "f1_macro": 0.8804,
+          "f1_weighted": 0.9205
+        },
+        "stratified_metrics": {
+          "Depression (< 34 kts)": {
+            "sample_count": 442,
+            "mae_kts": 2.037,
+            "rmse_kts": 4.64,
+            "bias_kts": 0.929
+          },
+          "Cyclonic Storm (34-63 kts)": {
+            "sample_count": 375,
+            "mae_kts": 2.312,
+            "rmse_kts": 3.512,
+            "bias_kts": -0.093
+          },
+          "Very Severe CS (64-89 kts)": {
+            "sample_count": 103,
+            "mae_kts": 3.738,
+            "rmse_kts": 5.635,
+            "bias_kts": -0.476
+          },
+          "Extremely Severe CS (90-119 kts)": {
+            "sample_count": 43,
+            "mae_kts": 3.977,
+            "rmse_kts": 5.785,
+            "bias_kts": -0.628
+          },
+          "Super Cyclonic Storm (>= 120 kts)": {
+            "sample_count": 8,
+            "mae_kts": 5.625,
+            "rmse_kts": 6.51,
+            "bias_kts": -1.875
+          }
+        }
+      }
+    },
     "baseline_cliper": {
       "model_type": "baseline_cliper",
+      "description": "Closed-form regularized Ridge regression on 8 authentic kinematic & environmental covariates.",
       "train_samples": 4973,
       "val_evaluation": {
         "model_type": "baseline_cliper",
@@ -83,7 +338,15 @@
           "mae_kts": 6.373,
           "rmse_kts": 8.417,
           "bias_kts": -4.012,
-          "pearson_r": 0.966
+          "pearson_r": 0.966,
+          "mae_ci": {
+            "low": 6.088,
+            "high": 6.749
+          },
+          "rmse_ci": {
+            "low": 8.062,
+            "high": 8.832
+          }
         },
         "classification_metrics": {
           "sample_count": 1285,
@@ -92,6 +355,38 @@
           "recall_macro": 0.2588,
           "f1_macro": 0.2275,
           "f1_weighted": 0.4961
+        },
+        "stratified_metrics": {
+          "Depression (< 34 kts)": {
+            "sample_count": 624,
+            "mae_kts": 3.68,
+            "rmse_kts": 5.221,
+            "bias_kts": 0.301
+          },
+          "Cyclonic Storm (34-63 kts)": {
+            "sample_count": 416,
+            "mae_kts": 8.302,
+            "rmse_kts": 9.513,
+            "bias_kts": -7.758
+          },
+          "Very Severe CS (64-89 kts)": {
+            "sample_count": 114,
+            "mae_kts": 10.985,
+            "rmse_kts": 13.071,
+            "bias_kts": -10.944
+          },
+          "Extremely Severe CS (90-119 kts)": {
+            "sample_count": 92,
+            "mae_kts": 10.025,
+            "rmse_kts": 12.581,
+            "bias_kts": -9.946
+          },
+          "Super Cyclonic Storm (>= 120 kts)": {
+            "sample_count": 39,
+            "mae_kts": 6.802,
+            "rmse_kts": 7.756,
+            "bias_kts": 1.216
+          }
         },
         "feature_importances": {
           "lat": 0.0984,
@@ -113,7 +408,15 @@
           "mae_kts": 7.766,
           "rmse_kts": 9.665,
           "bias_kts": -1.341,
-          "pearson_r": 0.908
+          "pearson_r": 0.908,
+          "mae_ci": {
+            "low": 7.414,
+            "high": 8.117
+          },
+          "rmse_ci": {
+            "low": 9.297,
+            "high": 10.039
+          }
         },
         "classification_metrics": {
           "sample_count": 971,
@@ -122,6 +425,38 @@
           "recall_macro": 0.2148,
           "f1_macro": 0.1782,
           "f1_weighted": 0.3906
+        },
+        "stratified_metrics": {
+          "Depression (< 34 kts)": {
+            "sample_count": 442,
+            "mae_kts": 6.306,
+            "rmse_kts": 8.441,
+            "bias_kts": 4.625
+          },
+          "Cyclonic Storm (34-63 kts)": {
+            "sample_count": 375,
+            "mae_kts": 7.893,
+            "rmse_kts": 9.151,
+            "bias_kts": -4.811
+          },
+          "Very Severe CS (64-89 kts)": {
+            "sample_count": 103,
+            "mae_kts": 13.322,
+            "rmse_kts": 14.532,
+            "bias_kts": -12.141
+          },
+          "Extremely Severe CS (90-119 kts)": {
+            "sample_count": 43,
+            "mae_kts": 9.055,
+            "rmse_kts": 11.697,
+            "bias_kts": -7.545
+          },
+          "Super Cyclonic Storm (>= 120 kts)": {
+            "sample_count": 8,
+            "mae_kts": 4.083,
+            "rmse_kts": 4.537,
+            "bias_kts": 4.083
+          }
         },
         "feature_importances": {
           "lat": 0.0984,
@@ -147,6 +482,7 @@
     },
     "environment_only": {
       "model_type": "environment",
+      "description": "Neural MLP operating exclusively on 8 authentic IBTrACS atmospheric & motion covariates.",
       "val_evaluation": {
         "model_type": "environment",
         "total_samples_evaluated": 1285,
@@ -155,7 +491,15 @@
           "mae_kts": 10.734,
           "rmse_kts": 17.859,
           "bias_kts": -8.638,
-          "pearson_r": 0.908
+          "pearson_r": 0.908,
+          "mae_ci": {
+            "low": 10.007,
+            "high": 11.523
+          },
+          "rmse_ci": {
+            "low": 16.49,
+            "high": 19.241
+          }
         },
         "classification_metrics": {
           "sample_count": 1285,
@@ -164,6 +508,38 @@
           "recall_macro": 0.293,
           "f1_macro": 0.2745,
           "f1_weighted": 0.5619
+        },
+        "stratified_metrics": {
+          "Depression (< 34 kts)": {
+            "sample_count": 624,
+            "mae_kts": 3.834,
+            "rmse_kts": 5.398,
+            "bias_kts": -0.037
+          },
+          "Cyclonic Storm (34-63 kts)": {
+            "sample_count": 416,
+            "mae_kts": 8.375,
+            "rmse_kts": 9.579,
+            "bias_kts": -7.596
+          },
+          "Very Severe CS (64-89 kts)": {
+            "sample_count": 114,
+            "mae_kts": 15.572,
+            "rmse_kts": 16.663,
+            "bias_kts": -15.572
+          },
+          "Extremely Severe CS (90-119 kts)": {
+            "sample_count": 92,
+            "mae_kts": 37.71,
+            "rmse_kts": 38.427,
+            "bias_kts": -37.71
+          },
+          "Super Cyclonic Storm (>= 120 kts)": {
+            "sample_count": 39,
+            "mae_kts": 68.506,
+            "rmse_kts": 69.059,
+            "bias_kts": -68.506
+          }
         }
       },
       "test_evaluation": {
@@ -174,7 +550,15 @@
           "mae_kts": 9.993,
           "rmse_kts": 14.317,
           "bias_kts": -3.784,
-          "pearson_r": 0.837
+          "pearson_r": 0.837,
+          "mae_ci": {
+            "low": 9.386,
+            "high": 10.688
+          },
+          "rmse_ci": {
+            "low": 13.113,
+            "high": 15.589
+          }
         },
         "classification_metrics": {
           "sample_count": 971,
@@ -183,10 +567,61 @@
           "recall_macro": 0.3209,
           "f1_macro": 0.3135,
           "f1_weighted": 0.6008
+        },
+        "stratified_metrics": {
+          "Depression (< 34 kts)": {
+            "sample_count": 442,
+            "mae_kts": 6.466,
+            "rmse_kts": 8.611,
+            "bias_kts": 4.328
+          },
+          "Cyclonic Storm (34-63 kts)": {
+            "sample_count": 375,
+            "mae_kts": 7.729,
+            "rmse_kts": 8.982,
+            "bias_kts": -4.375
+          },
+          "Very Severe CS (64-89 kts)": {
+            "sample_count": 103,
+            "mae_kts": 17.67,
+            "rmse_kts": 18.355,
+            "bias_kts": -17.67
+          },
+          "Extremely Severe CS (90-119 kts)": {
+            "sample_count": 43,
+            "mae_kts": 35.672,
+            "rmse_kts": 36.423,
+            "bias_kts": -35.672
+          },
+          "Super Cyclonic Storm (>= 120 kts)": {
+            "sample_count": 8,
+            "mae_kts": 74.119,
+            "rmse_kts": 74.388,
+            "bias_kts": -74.119
+          }
         }
       },
       "checkpoint_sha256": "1f6fa3f9c28d73c26ea5dc7f16dae3ae483e7720a7e80fc697df8518202d22ec"
     },
+    "spaceborne_satellite_observation": {
+      "sensor": "GEOSTATIONARY_ABI (NOAA GOES-16 Band 1)",
+      "storm_name": "HELENE",
+      "season": 2024,
+      "pairing_time_delta_minutes": 1.3,
+      "ground_truth_intensity_kts": 105.0,
+      "ground_truth_category": 3,
+      "predicted_intensity_kts": 77.36,
+      "predicted_category": "Very Severe Cyclonic Storm (64-89 kts)",
+      "absolute_error_kts": 27.64,
+      "gradcam_eyewall_energy_ratio": 0.378,
+      "provenance_w3c_id": "d60e3af2-bbaf-458c-a66e-d72d9e050d02",
+      "is_synthetic_benchmark": false
+    }
+  },
+  "quarantined_proxy_experiments": {
+    "TARGET_LEAKAGE_WARNING": true,
+    "status": "QUARANTINED_FOR_METHODOLOGICAL_LEAKAGE",
+    "audit_finding": "In TropicalCycloneDataset, 2-channel radiative rasters were synthesized using an analytical vortex temperature formula: T_B = g(wind_kts). Because the raster structure was derived from the target label, neural models learned to invert this generator formula rather than extract predictive features from genuine spaceborne satellite observations. Consequently, the low test MAE (~1.7-1.8 kts) and near-perfect correlation (0.999) are mathematical artifacts of formula inversion and MUST NOT be cited as evidence of real-world spaceborne predictive performance.",
     "image_only": {
       "model_type": "image",
       "val_evaluation": {
@@ -197,7 +632,15 @@
           "mae_kts": 1.736,
           "rmse_kts": 2.395,
           "bias_kts": 1.62,
-          "pearson_r": 0.999
+          "pearson_r": 0.999,
+          "mae_ci": {
+            "low": 1.639,
+            "high": 1.828
+          },
+          "rmse_ci": {
+            "low": 2.282,
+            "high": 2.507
+          }
         },
         "classification_metrics": {
           "sample_count": 1285,
@@ -206,6 +649,38 @@
           "recall_macro": 0.7368,
           "f1_macro": 0.7121,
           "f1_weighted": 0.9082
+        },
+        "stratified_metrics": {
+          "Depression (< 34 kts)": {
+            "sample_count": 624,
+            "mae_kts": 0.542,
+            "rmse_kts": 0.787,
+            "bias_kts": 0.444
+          },
+          "Cyclonic Storm (34-63 kts)": {
+            "sample_count": 416,
+            "mae_kts": 1.961,
+            "rmse_kts": 2.034,
+            "bias_kts": 1.961
+          },
+          "Very Severe CS (64-89 kts)": {
+            "sample_count": 114,
+            "mae_kts": 3.725,
+            "rmse_kts": 3.796,
+            "bias_kts": 3.725
+          },
+          "Extremely Severe CS (90-119 kts)": {
+            "sample_count": 92,
+            "mae_kts": 5.861,
+            "rmse_kts": 5.869,
+            "bias_kts": 5.861
+          },
+          "Super Cyclonic Storm (>= 120 kts)": {
+            "sample_count": 39,
+            "mae_kts": 2.887,
+            "rmse_kts": 3.409,
+            "bias_kts": 0.637
+          }
         }
       },
       "test_evaluation": {
@@ -216,7 +691,15 @@
           "mae_kts": 1.721,
           "rmse_kts": 2.248,
           "bias_kts": 1.657,
-          "pearson_r": 0.999
+          "pearson_r": 0.999,
+          "mae_ci": {
+            "low": 1.628,
+            "high": 1.817
+          },
+          "rmse_ci": {
+            "low": 2.132,
+            "high": 2.371
+          }
         },
         "classification_metrics": {
           "sample_count": 971,
@@ -225,10 +708,43 @@
           "recall_macro": 0.7363,
           "f1_macro": 0.7175,
           "f1_weighted": 0.9345
+        },
+        "stratified_metrics": {
+          "Depression (< 34 kts)": {
+            "sample_count": 442,
+            "mae_kts": 0.607,
+            "rmse_kts": 0.687,
+            "bias_kts": 0.54
+          },
+          "Cyclonic Storm (34-63 kts)": {
+            "sample_count": 375,
+            "mae_kts": 1.942,
+            "rmse_kts": 2.012,
+            "bias_kts": 1.942
+          },
+          "Very Severe CS (64-89 kts)": {
+            "sample_count": 103,
+            "mae_kts": 3.911,
+            "rmse_kts": 3.994,
+            "bias_kts": 3.911
+          },
+          "Extremely Severe CS (90-119 kts)": {
+            "sample_count": 43,
+            "mae_kts": 5.836,
+            "rmse_kts": 5.843,
+            "bias_kts": 5.836
+          },
+          "Super Cyclonic Storm (>= 120 kts)": {
+            "sample_count": 8,
+            "mae_kts": 2.599,
+            "rmse_kts": 2.955,
+            "bias_kts": -1.413
+          }
         }
       },
       "checkpoint_sha256": "6692cf0b3800164e9a99a008d0556b8d6b553b925e2e8791f8bb2bded1e7023e",
-      "scientific_disclaimer": "Evaluated on calibrated proxy tensors. For operational spaceborne sensor evaluation, see run_real_cyclone_demo.py."
+      "is_synthetic_benchmark": true,
+      "target_leakage_warning": true
     },
     "multimodal_fusion": {
       "model_type": "fusion",
@@ -240,7 +756,15 @@
           "mae_kts": 3.321,
           "rmse_kts": 9.886,
           "bias_kts": -2.749,
-          "pearson_r": 0.96
+          "pearson_r": 0.96,
+          "mae_ci": {
+            "low": 2.842,
+            "high": 3.862
+          },
+          "rmse_ci": {
+            "low": 8.694,
+            "high": 11.049
+          }
         },
         "classification_metrics": {
           "sample_count": 1285,
@@ -249,6 +773,38 @@
           "recall_macro": 0.7392,
           "f1_macro": 0.719,
           "f1_weighted": 0.9134
+        },
+        "stratified_metrics": {
+          "Depression (< 34 kts)": {
+            "sample_count": 624,
+            "mae_kts": 0.483,
+            "rmse_kts": 0.666,
+            "bias_kts": 0.156
+          },
+          "Cyclonic Storm (34-63 kts)": {
+            "sample_count": 416,
+            "mae_kts": 0.728,
+            "rmse_kts": 0.759,
+            "bias_kts": -0.677
+          },
+          "Very Severe CS (64-89 kts)": {
+            "sample_count": 114,
+            "mae_kts": 1.891,
+            "rmse_kts": 2.122,
+            "bias_kts": 0.872
+          },
+          "Extremely Severe CS (90-119 kts)": {
+            "sample_count": 92,
+            "mae_kts": 17.183,
+            "rmse_kts": 18.747,
+            "bias_kts": -17.183
+          },
+          "Super Cyclonic Storm (>= 120 kts)": {
+            "sample_count": 39,
+            "mae_kts": 47.866,
+            "rmse_kts": 48.625,
+            "bias_kts": -47.866
+          }
         }
       },
       "test_evaluation": {
@@ -259,7 +815,15 @@
           "mae_kts": 1.831,
           "rmse_kts": 6.126,
           "bias_kts": -1.374,
-          "pearson_r": 0.971
+          "pearson_r": 0.971,
+          "mae_ci": {
+            "low": 1.477,
+            "high": 2.204
+          },
+          "rmse_ci": {
+            "low": 4.671,
+            "high": 7.601
+          }
         },
         "classification_metrics": {
           "sample_count": 971,
@@ -268,13 +832,853 @@
           "recall_macro": 0.7479,
           "f1_macro": 0.7341,
           "f1_weighted": 0.9493
+        },
+        "stratified_metrics": {
+          "Depression (< 34 kts)": {
+            "sample_count": 442,
+            "mae_kts": 0.423,
+            "rmse_kts": 0.531,
+            "bias_kts": -0.044
+          },
+          "Cyclonic Storm (34-63 kts)": {
+            "sample_count": 375,
+            "mae_kts": 0.743,
+            "rmse_kts": 0.771,
+            "bias_kts": -0.703
+          },
+          "Very Severe CS (64-89 kts)": {
+            "sample_count": 103,
+            "mae_kts": 2.215,
+            "rmse_kts": 2.551,
+            "bias_kts": 0.324
+          },
+          "Extremely Severe CS (90-119 kts)": {
+            "sample_count": 43,
+            "mae_kts": 15.282,
+            "rmse_kts": 16.932,
+            "bias_kts": -15.282
+          },
+          "Super Cyclonic Storm (>= 120 kts)": {
+            "sample_count": 8,
+            "mae_kts": 53.361,
+            "rmse_kts": 53.726,
+            "bias_kts": -53.361
+          }
         }
       },
-      "checkpoint_sha256": "365b50788b6e9a247d85a7c1a95526eb89aeecb97e2db39f26cbb25fbc396b16"
+      "checkpoint_sha256": "365b50788b6e9a247d85a7c1a95526eb89aeecb97e2db39f26cbb25fbc396b16",
+      "is_synthetic_benchmark": true,
+      "target_leakage_warning": true
+    }
+  },
+  "models_evaluated": {
+    "baseline_climatology": {
+      "model_type": "baseline_climatology",
+      "description": "Standard meteorological climatology predicting training mean intensity and modal category.",
+      "train_samples": 4973,
+      "val_evaluation": {
+        "model_type": "baseline_climatology",
+        "train_samples": 4973,
+        "test_samples": 1285,
+        "climatological_mean_kts": 40.34,
+        "climatological_modal_category": 0,
+        "intensity_metrics": {
+          "sample_count": 1285,
+          "mae_kts": 20.729,
+          "rmse_kts": 28.442,
+          "bias_kts": -3.263,
+          "pearson_r": 0.0,
+          "mae_ci": {
+            "low": 19.674,
+            "high": 21.823
+          },
+          "rmse_ci": {
+            "low": 26.872,
+            "high": 30.081
+          }
+        },
+        "classification_metrics": {
+          "sample_count": 1285,
+          "accuracy": 0.4856,
+          "precision_macro": 0.0971,
+          "recall_macro": 0.2,
+          "f1_macro": 0.1307,
+          "f1_weighted": 0.3175
+        },
+        "stratified_metrics": {
+          "Depression (< 34 kts)": {
+            "sample_count": 624,
+            "mae_kts": 16.928,
+            "rmse_kts": 17.754,
+            "bias_kts": 16.928
+          },
+          "Cyclonic Storm (34-63 kts)": {
+            "sample_count": 416,
+            "mae_kts": 7.453,
+            "rmse_kts": 9.659,
+            "bias_kts": -4.284
+          },
+          "Very Severe CS (64-89 kts)": {
+            "sample_count": 114,
+            "mae_kts": 33.887,
+            "rmse_kts": 34.657,
+            "bias_kts": -33.887
+          },
+          "Extremely Severe CS (90-119 kts)": {
+            "sample_count": 92,
+            "mae_kts": 60.474,
+            "rmse_kts": 60.944,
+            "bias_kts": -60.474
+          },
+          "Super Cyclonic Storm (>= 120 kts)": {
+            "sample_count": 39,
+            "mae_kts": 90.941,
+            "rmse_kts": 91.336,
+            "bias_kts": -90.941
+          }
+        }
+      },
+      "test_evaluation": {
+        "model_type": "baseline_climatology",
+        "train_samples": 4973,
+        "test_samples": 971,
+        "climatological_mean_kts": 40.34,
+        "climatological_modal_category": 0,
+        "intensity_metrics": {
+          "sample_count": 971,
+          "mae_kts": 16.706,
+          "rmse_kts": 22.776,
+          "bias_kts": -1.838,
+          "pearson_r": 0.0,
+          "mae_ci": {
+            "low": 15.787,
+            "high": 17.657
+          },
+          "rmse_ci": {
+            "low": 21.264,
+            "high": 24.271
+          }
+        },
+        "classification_metrics": {
+          "sample_count": 971,
+          "accuracy": 0.4552,
+          "precision_macro": 0.091,
+          "recall_macro": 0.2,
+          "f1_macro": 0.1251,
+          "f1_weighted": 0.2848
+        },
+        "stratified_metrics": {
+          "Depression (< 34 kts)": {
+            "sample_count": 442,
+            "mae_kts": 14.988,
+            "rmse_kts": 15.811,
+            "bias_kts": 14.988
+          },
+          "Cyclonic Storm (34-63 kts)": {
+            "sample_count": 375,
+            "mae_kts": 7.026,
+            "rmse_kts": 9.172,
+            "bias_kts": -3.861
+          },
+          "Very Severe CS (64-89 kts)": {
+            "sample_count": 103,
+            "mae_kts": 35.659,
+            "rmse_kts": 36.507,
+            "bias_kts": -35.659
+          },
+          "Extremely Severe CS (90-119 kts)": {
+            "sample_count": 43,
+            "mae_kts": 58.542,
+            "rmse_kts": 59.007,
+            "bias_kts": -58.542
+          },
+          "Super Cyclonic Storm (>= 120 kts)": {
+            "sample_count": 8,
+            "mae_kts": 96.409,
+            "rmse_kts": 96.608,
+            "bias_kts": -96.409
+          }
+        }
+      }
+    },
+    "baseline_persistence": {
+      "model_type": "baseline_persistence",
+      "description": "Standard operational persistence baseline predicting prior observation along chronological storm track (V_t = V_{t-1}).",
+      "train_samples": 4973,
+      "val_evaluation": {
+        "model_type": "baseline_persistence",
+        "train_samples": 4973,
+        "test_samples": 1285,
+        "intensity_metrics": {
+          "sample_count": 1285,
+          "mae_kts": 2.784,
+          "rmse_kts": 4.772,
+          "bias_kts": 0.364,
+          "pearson_r": 0.986,
+          "mae_ci": {
+            "low": 2.581,
+            "high": 3.023
+          },
+          "rmse_ci": {
+            "low": 4.341,
+            "high": 5.233
+          }
+        },
+        "classification_metrics": {
+          "sample_count": 1285,
+          "accuracy": 0.9128,
+          "precision_macro": 0.8763,
+          "recall_macro": 0.8763,
+          "f1_macro": 0.8763,
+          "f1_weighted": 0.9128
+        },
+        "stratified_metrics": {
+          "Depression (< 34 kts)": {
+            "sample_count": 624,
+            "mae_kts": 2.184,
+            "rmse_kts": 4.818,
+            "bias_kts": 0.873
+          },
+          "Cyclonic Storm (34-63 kts)": {
+            "sample_count": 416,
+            "mae_kts": 2.666,
+            "rmse_kts": 3.678,
+            "bias_kts": 0.012
+          },
+          "Very Severe CS (64-89 kts)": {
+            "sample_count": 114,
+            "mae_kts": 4.763,
+            "rmse_kts": 6.073,
+            "bias_kts": -0.167
+          },
+          "Extremely Severe CS (90-119 kts)": {
+            "sample_count": 92,
+            "mae_kts": 4.174,
+            "rmse_kts": 6.024,
+            "bias_kts": -0.152
+          },
+          "Super Cyclonic Storm (>= 120 kts)": {
+            "sample_count": 39,
+            "mae_kts": 4.59,
+            "rmse_kts": 6.411,
+            "bias_kts": -1.256
+          }
+        }
+      },
+      "test_evaluation": {
+        "model_type": "baseline_persistence",
+        "train_samples": 4973,
+        "test_samples": 971,
+        "intensity_metrics": {
+          "sample_count": 971,
+          "mae_kts": 2.439,
+          "rmse_kts": 4.446,
+          "bias_kts": 0.293,
+          "pearson_r": 0.981,
+          "mae_ci": {
+            "low": 2.242,
+            "high": 2.676
+          },
+          "rmse_ci": {
+            "low": 3.953,
+            "high": 5.01
+          }
+        },
+        "classification_metrics": {
+          "sample_count": 971,
+          "accuracy": 0.9207,
+          "precision_macro": 0.8818,
+          "recall_macro": 0.879,
+          "f1_macro": 0.8804,
+          "f1_weighted": 0.9205
+        },
+        "stratified_metrics": {
+          "Depression (< 34 kts)": {
+            "sample_count": 442,
+            "mae_kts": 2.037,
+            "rmse_kts": 4.64,
+            "bias_kts": 0.929
+          },
+          "Cyclonic Storm (34-63 kts)": {
+            "sample_count": 375,
+            "mae_kts": 2.312,
+            "rmse_kts": 3.512,
+            "bias_kts": -0.093
+          },
+          "Very Severe CS (64-89 kts)": {
+            "sample_count": 103,
+            "mae_kts": 3.738,
+            "rmse_kts": 5.635,
+            "bias_kts": -0.476
+          },
+          "Extremely Severe CS (90-119 kts)": {
+            "sample_count": 43,
+            "mae_kts": 3.977,
+            "rmse_kts": 5.785,
+            "bias_kts": -0.628
+          },
+          "Super Cyclonic Storm (>= 120 kts)": {
+            "sample_count": 8,
+            "mae_kts": 5.625,
+            "rmse_kts": 6.51,
+            "bias_kts": -1.875
+          }
+        }
+      }
+    },
+    "baseline_cliper": {
+      "model_type": "baseline_cliper",
+      "description": "Closed-form regularized Ridge regression on 8 authentic kinematic & environmental covariates.",
+      "train_samples": 4973,
+      "val_evaluation": {
+        "model_type": "baseline_cliper",
+        "train_samples": 4973,
+        "test_samples": 1285,
+        "intensity_metrics": {
+          "sample_count": 1285,
+          "mae_kts": 6.373,
+          "rmse_kts": 8.417,
+          "bias_kts": -4.012,
+          "pearson_r": 0.966,
+          "mae_ci": {
+            "low": 6.088,
+            "high": 6.749
+          },
+          "rmse_ci": {
+            "low": 8.062,
+            "high": 8.832
+          }
+        },
+        "classification_metrics": {
+          "sample_count": 1285,
+          "accuracy": 0.5759,
+          "precision_macro": 0.2083,
+          "recall_macro": 0.2588,
+          "f1_macro": 0.2275,
+          "f1_weighted": 0.4961
+        },
+        "stratified_metrics": {
+          "Depression (< 34 kts)": {
+            "sample_count": 624,
+            "mae_kts": 3.68,
+            "rmse_kts": 5.221,
+            "bias_kts": 0.301
+          },
+          "Cyclonic Storm (34-63 kts)": {
+            "sample_count": 416,
+            "mae_kts": 8.302,
+            "rmse_kts": 9.513,
+            "bias_kts": -7.758
+          },
+          "Very Severe CS (64-89 kts)": {
+            "sample_count": 114,
+            "mae_kts": 10.985,
+            "rmse_kts": 13.071,
+            "bias_kts": -10.944
+          },
+          "Extremely Severe CS (90-119 kts)": {
+            "sample_count": 92,
+            "mae_kts": 10.025,
+            "rmse_kts": 12.581,
+            "bias_kts": -9.946
+          },
+          "Super Cyclonic Storm (>= 120 kts)": {
+            "sample_count": 39,
+            "mae_kts": 6.802,
+            "rmse_kts": 7.756,
+            "bias_kts": 1.216
+          }
+        },
+        "feature_importances": {
+          "lat": 0.0984,
+          "lon": 0.004,
+          "coriolis": 0.1944,
+          "dist_equator": 0.0984,
+          "pressure_deficit": 0.5939,
+          "speed": 0.0007,
+          "bearing_cos": 0.0056,
+          "season_phase": 0.0046
+        }
+      },
+      "test_evaluation": {
+        "model_type": "baseline_cliper",
+        "train_samples": 4973,
+        "test_samples": 971,
+        "intensity_metrics": {
+          "sample_count": 971,
+          "mae_kts": 7.766,
+          "rmse_kts": 9.665,
+          "bias_kts": -1.341,
+          "pearson_r": 0.908,
+          "mae_ci": {
+            "low": 7.414,
+            "high": 8.117
+          },
+          "rmse_ci": {
+            "low": 9.297,
+            "high": 10.039
+          }
+        },
+        "classification_metrics": {
+          "sample_count": 971,
+          "accuracy": 0.4768,
+          "precision_macro": 0.1639,
+          "recall_macro": 0.2148,
+          "f1_macro": 0.1782,
+          "f1_weighted": 0.3906
+        },
+        "stratified_metrics": {
+          "Depression (< 34 kts)": {
+            "sample_count": 442,
+            "mae_kts": 6.306,
+            "rmse_kts": 8.441,
+            "bias_kts": 4.625
+          },
+          "Cyclonic Storm (34-63 kts)": {
+            "sample_count": 375,
+            "mae_kts": 7.893,
+            "rmse_kts": 9.151,
+            "bias_kts": -4.811
+          },
+          "Very Severe CS (64-89 kts)": {
+            "sample_count": 103,
+            "mae_kts": 13.322,
+            "rmse_kts": 14.532,
+            "bias_kts": -12.141
+          },
+          "Extremely Severe CS (90-119 kts)": {
+            "sample_count": 43,
+            "mae_kts": 9.055,
+            "rmse_kts": 11.697,
+            "bias_kts": -7.545
+          },
+          "Super Cyclonic Storm (>= 120 kts)": {
+            "sample_count": 8,
+            "mae_kts": 4.083,
+            "rmse_kts": 4.537,
+            "bias_kts": 4.083
+          }
+        },
+        "feature_importances": {
+          "lat": 0.0984,
+          "lon": 0.004,
+          "coriolis": 0.1944,
+          "dist_equator": 0.0984,
+          "pressure_deficit": 0.5939,
+          "speed": 0.0007,
+          "bearing_cos": 0.0056,
+          "season_phase": 0.0046
+        }
+      },
+      "feature_importances": {
+        "lat": 0.0984,
+        "lon": 0.004,
+        "coriolis": 0.1944,
+        "dist_equator": 0.0984,
+        "pressure_deficit": 0.5939,
+        "speed": 0.0007,
+        "bearing_cos": 0.0056,
+        "season_phase": 0.0046
+      }
+    },
+    "environment_only": {
+      "model_type": "environment",
+      "description": "Neural MLP operating exclusively on 8 authentic IBTrACS atmospheric & motion covariates.",
+      "val_evaluation": {
+        "model_type": "environment",
+        "total_samples_evaluated": 1285,
+        "intensity_metrics": {
+          "sample_count": 1285,
+          "mae_kts": 10.734,
+          "rmse_kts": 17.859,
+          "bias_kts": -8.638,
+          "pearson_r": 0.908,
+          "mae_ci": {
+            "low": 10.007,
+            "high": 11.523
+          },
+          "rmse_ci": {
+            "low": 16.49,
+            "high": 19.241
+          }
+        },
+        "classification_metrics": {
+          "sample_count": 1285,
+          "accuracy": 0.6156,
+          "precision_macro": 0.2676,
+          "recall_macro": 0.293,
+          "f1_macro": 0.2745,
+          "f1_weighted": 0.5619
+        },
+        "stratified_metrics": {
+          "Depression (< 34 kts)": {
+            "sample_count": 624,
+            "mae_kts": 3.834,
+            "rmse_kts": 5.398,
+            "bias_kts": -0.037
+          },
+          "Cyclonic Storm (34-63 kts)": {
+            "sample_count": 416,
+            "mae_kts": 8.375,
+            "rmse_kts": 9.579,
+            "bias_kts": -7.596
+          },
+          "Very Severe CS (64-89 kts)": {
+            "sample_count": 114,
+            "mae_kts": 15.572,
+            "rmse_kts": 16.663,
+            "bias_kts": -15.572
+          },
+          "Extremely Severe CS (90-119 kts)": {
+            "sample_count": 92,
+            "mae_kts": 37.71,
+            "rmse_kts": 38.427,
+            "bias_kts": -37.71
+          },
+          "Super Cyclonic Storm (>= 120 kts)": {
+            "sample_count": 39,
+            "mae_kts": 68.506,
+            "rmse_kts": 69.059,
+            "bias_kts": -68.506
+          }
+        }
+      },
+      "test_evaluation": {
+        "model_type": "environment",
+        "total_samples_evaluated": 971,
+        "intensity_metrics": {
+          "sample_count": 971,
+          "mae_kts": 9.993,
+          "rmse_kts": 14.317,
+          "bias_kts": -3.784,
+          "pearson_r": 0.837,
+          "mae_ci": {
+            "low": 9.386,
+            "high": 10.688
+          },
+          "rmse_ci": {
+            "low": 13.113,
+            "high": 15.589
+          }
+        },
+        "classification_metrics": {
+          "sample_count": 971,
+          "accuracy": 0.6303,
+          "precision_macro": 0.3128,
+          "recall_macro": 0.3209,
+          "f1_macro": 0.3135,
+          "f1_weighted": 0.6008
+        },
+        "stratified_metrics": {
+          "Depression (< 34 kts)": {
+            "sample_count": 442,
+            "mae_kts": 6.466,
+            "rmse_kts": 8.611,
+            "bias_kts": 4.328
+          },
+          "Cyclonic Storm (34-63 kts)": {
+            "sample_count": 375,
+            "mae_kts": 7.729,
+            "rmse_kts": 8.982,
+            "bias_kts": -4.375
+          },
+          "Very Severe CS (64-89 kts)": {
+            "sample_count": 103,
+            "mae_kts": 17.67,
+            "rmse_kts": 18.355,
+            "bias_kts": -17.67
+          },
+          "Extremely Severe CS (90-119 kts)": {
+            "sample_count": 43,
+            "mae_kts": 35.672,
+            "rmse_kts": 36.423,
+            "bias_kts": -35.672
+          },
+          "Super Cyclonic Storm (>= 120 kts)": {
+            "sample_count": 8,
+            "mae_kts": 74.119,
+            "rmse_kts": 74.388,
+            "bias_kts": -74.119
+          }
+        }
+      },
+      "checkpoint_sha256": "1f6fa3f9c28d73c26ea5dc7f16dae3ae483e7720a7e80fc697df8518202d22ec"
+    },
+    "spaceborne_satellite_observation": {
+      "sensor": "GEOSTATIONARY_ABI (NOAA GOES-16 Band 1)",
+      "storm_name": "HELENE",
+      "season": 2024,
+      "pairing_time_delta_minutes": 1.3,
+      "ground_truth_intensity_kts": 105.0,
+      "ground_truth_category": 3,
+      "predicted_intensity_kts": 77.36,
+      "predicted_category": "Very Severe Cyclonic Storm (64-89 kts)",
+      "absolute_error_kts": 27.64,
+      "gradcam_eyewall_energy_ratio": 0.378,
+      "provenance_w3c_id": "d60e3af2-bbaf-458c-a66e-d72d9e050d02",
+      "is_synthetic_benchmark": false
+    },
+    "image_only": {
+      "model_type": "image",
+      "val_evaluation": {
+        "model_type": "image",
+        "total_samples_evaluated": 1285,
+        "intensity_metrics": {
+          "sample_count": 1285,
+          "mae_kts": 1.736,
+          "rmse_kts": 2.395,
+          "bias_kts": 1.62,
+          "pearson_r": 0.999,
+          "mae_ci": {
+            "low": 1.639,
+            "high": 1.828
+          },
+          "rmse_ci": {
+            "low": 2.282,
+            "high": 2.507
+          }
+        },
+        "classification_metrics": {
+          "sample_count": 1285,
+          "accuracy": 0.9206,
+          "precision_macro": 0.7102,
+          "recall_macro": 0.7368,
+          "f1_macro": 0.7121,
+          "f1_weighted": 0.9082
+        },
+        "stratified_metrics": {
+          "Depression (< 34 kts)": {
+            "sample_count": 624,
+            "mae_kts": 0.542,
+            "rmse_kts": 0.787,
+            "bias_kts": 0.444
+          },
+          "Cyclonic Storm (34-63 kts)": {
+            "sample_count": 416,
+            "mae_kts": 1.961,
+            "rmse_kts": 2.034,
+            "bias_kts": 1.961
+          },
+          "Very Severe CS (64-89 kts)": {
+            "sample_count": 114,
+            "mae_kts": 3.725,
+            "rmse_kts": 3.796,
+            "bias_kts": 3.725
+          },
+          "Extremely Severe CS (90-119 kts)": {
+            "sample_count": 92,
+            "mae_kts": 5.861,
+            "rmse_kts": 5.869,
+            "bias_kts": 5.861
+          },
+          "Super Cyclonic Storm (>= 120 kts)": {
+            "sample_count": 39,
+            "mae_kts": 2.887,
+            "rmse_kts": 3.409,
+            "bias_kts": 0.637
+          }
+        }
+      },
+      "test_evaluation": {
+        "model_type": "image",
+        "total_samples_evaluated": 971,
+        "intensity_metrics": {
+          "sample_count": 971,
+          "mae_kts": 1.721,
+          "rmse_kts": 2.248,
+          "bias_kts": 1.657,
+          "pearson_r": 0.999,
+          "mae_ci": {
+            "low": 1.628,
+            "high": 1.817
+          },
+          "rmse_ci": {
+            "low": 2.132,
+            "high": 2.371
+          }
+        },
+        "classification_metrics": {
+          "sample_count": 971,
+          "accuracy": 0.9382,
+          "precision_macro": 0.719,
+          "recall_macro": 0.7363,
+          "f1_macro": 0.7175,
+          "f1_weighted": 0.9345
+        },
+        "stratified_metrics": {
+          "Depression (< 34 kts)": {
+            "sample_count": 442,
+            "mae_kts": 0.607,
+            "rmse_kts": 0.687,
+            "bias_kts": 0.54
+          },
+          "Cyclonic Storm (34-63 kts)": {
+            "sample_count": 375,
+            "mae_kts": 1.942,
+            "rmse_kts": 2.012,
+            "bias_kts": 1.942
+          },
+          "Very Severe CS (64-89 kts)": {
+            "sample_count": 103,
+            "mae_kts": 3.911,
+            "rmse_kts": 3.994,
+            "bias_kts": 3.911
+          },
+          "Extremely Severe CS (90-119 kts)": {
+            "sample_count": 43,
+            "mae_kts": 5.836,
+            "rmse_kts": 5.843,
+            "bias_kts": 5.836
+          },
+          "Super Cyclonic Storm (>= 120 kts)": {
+            "sample_count": 8,
+            "mae_kts": 2.599,
+            "rmse_kts": 2.955,
+            "bias_kts": -1.413
+          }
+        }
+      },
+      "checkpoint_sha256": "6692cf0b3800164e9a99a008d0556b8d6b553b925e2e8791f8bb2bded1e7023e",
+      "is_synthetic_benchmark": true,
+      "target_leakage_warning": true
+    },
+    "multimodal_fusion": {
+      "model_type": "fusion",
+      "val_evaluation": {
+        "model_type": "fusion",
+        "total_samples_evaluated": 1285,
+        "intensity_metrics": {
+          "sample_count": 1285,
+          "mae_kts": 3.321,
+          "rmse_kts": 9.886,
+          "bias_kts": -2.749,
+          "pearson_r": 0.96,
+          "mae_ci": {
+            "low": 2.842,
+            "high": 3.862
+          },
+          "rmse_ci": {
+            "low": 8.694,
+            "high": 11.049
+          }
+        },
+        "classification_metrics": {
+          "sample_count": 1285,
+          "accuracy": 0.9268,
+          "precision_macro": 0.7171,
+          "recall_macro": 0.7392,
+          "f1_macro": 0.719,
+          "f1_weighted": 0.9134
+        },
+        "stratified_metrics": {
+          "Depression (< 34 kts)": {
+            "sample_count": 624,
+            "mae_kts": 0.483,
+            "rmse_kts": 0.666,
+            "bias_kts": 0.156
+          },
+          "Cyclonic Storm (34-63 kts)": {
+            "sample_count": 416,
+            "mae_kts": 0.728,
+            "rmse_kts": 0.759,
+            "bias_kts": -0.677
+          },
+          "Very Severe CS (64-89 kts)": {
+            "sample_count": 114,
+            "mae_kts": 1.891,
+            "rmse_kts": 2.122,
+            "bias_kts": 0.872
+          },
+          "Extremely Severe CS (90-119 kts)": {
+            "sample_count": 92,
+            "mae_kts": 17.183,
+            "rmse_kts": 18.747,
+            "bias_kts": -17.183
+          },
+          "Super Cyclonic Storm (>= 120 kts)": {
+            "sample_count": 39,
+            "mae_kts": 47.866,
+            "rmse_kts": 48.625,
+            "bias_kts": -47.866
+          }
+        }
+      },
+      "test_evaluation": {
+        "model_type": "fusion",
+        "total_samples_evaluated": 971,
+        "intensity_metrics": {
+          "sample_count": 971,
+          "mae_kts": 1.831,
+          "rmse_kts": 6.126,
+          "bias_kts": -1.374,
+          "pearson_r": 0.971,
+          "mae_ci": {
+            "low": 1.477,
+            "high": 2.204
+          },
+          "rmse_ci": {
+            "low": 4.671,
+            "high": 7.601
+          }
+        },
+        "classification_metrics": {
+          "sample_count": 971,
+          "accuracy": 0.9537,
+          "precision_macro": 0.7336,
+          "recall_macro": 0.7479,
+          "f1_macro": 0.7341,
+          "f1_weighted": 0.9493
+        },
+        "stratified_metrics": {
+          "Depression (< 34 kts)": {
+            "sample_count": 442,
+            "mae_kts": 0.423,
+            "rmse_kts": 0.531,
+            "bias_kts": -0.044
+          },
+          "Cyclonic Storm (34-63 kts)": {
+            "sample_count": 375,
+            "mae_kts": 0.743,
+            "rmse_kts": 0.771,
+            "bias_kts": -0.703
+          },
+          "Very Severe CS (64-89 kts)": {
+            "sample_count": 103,
+            "mae_kts": 2.215,
+            "rmse_kts": 2.551,
+            "bias_kts": 0.324
+          },
+          "Extremely Severe CS (90-119 kts)": {
+            "sample_count": 43,
+            "mae_kts": 15.282,
+            "rmse_kts": 16.932,
+            "bias_kts": -15.282
+          },
+          "Super Cyclonic Storm (>= 120 kts)": {
+            "sample_count": 8,
+            "mae_kts": 53.361,
+            "rmse_kts": 53.726,
+            "bias_kts": -53.361
+          }
+        }
+      },
+      "checkpoint_sha256": "365b50788b6e9a247d85a7c1a95526eb89aeecb97e2db39f26cbb25fbc396b16",
+      "is_synthetic_benchmark": true,
+      "target_leakage_warning": true
     }
   },
   "metrics_reconciliation": {
-    "macro_vs_weighted_f1_explanation": "Macro F1 (~0.71-0.73) represents the unweighted arithmetic mean across all 5 IMD categories. Because Category 4 (Super Cyclonic Storms, >= 120 kts) is exceptionally rare in the North Indian Ocean (< 1.5% of observations), per-class recall for the extreme minority class lowers the unweighted macro average. In contrast, Weighted F1 (~0.91-0.95) weights each class by its support, accurately reflecting overall classification reliability across the actual operational cyclone frequency distribution.",
+    "dataset_sample_reconciliation": {
+      "total_storms_in_ibtracs_ni_archive": 1859,
+      "eligible_storms_season_ge_2000": 265,
+      "storms_with_valid_wind_observations": 157,
+      "total_valid_observations": 7229,
+      "train_observations": 4973,
+      "validation_observations": 1285,
+      "test_observations": 971,
+      "inclusion_exclusion_filter": "Archive contains 1,859 historical storms dating back to 1842. Filtering for modern satellite era (seasons >= 2000) yields 265 candidate storms. Excluding storms with zero recorded wind speed or coordinates outside valid geophysical bounds yields exactly 157 unique storms and 7,229 observations: 4,973 train (109 storms), 1,285 validation (23 storms), and 971 test (25 storms)."
+    },
+    "macro_vs_weighted_f1_explanation": "Macro F1 represents the unweighted arithmetic mean across all 5 IMD categories. Because Category 4 (Super Cyclonic Storms, >= 120 kts) is exceptionally rare in the North Indian Ocean (< 1.5% of observations), per-class recall for the extreme minority class lowers the unweighted macro average. In contrast, Weighted F1 weights each class by its support, accurately reflecting overall classification reliability across the actual operational cyclone frequency distribution.",
     "validation_vs_test_reconciliation": {
       "val_samples_count": 1285,
       "val_seasons": [
@@ -284,7 +1688,6 @@
         2021,
         2022
       ],
-      "val_fusion_macro_f1": 0.719,
       "test_samples_count": 971,
       "test_seasons": [
         2022,
@@ -293,18 +1696,22 @@
         2025,
         2026
       ],
-      "test_fusion_macro_f1": 0.7341,
       "explanation": "Checkpoint metadata files recorded validation set metrics during training early stopping; benchmark reports record held-out test set metrics."
     }
   },
   "scientific_fidelity_audit": {
-    "synthetic_input_target_leakage_finding": "CRITICAL SCIENTIFIC AUDIT: In TropicalCycloneDataset, multi-channel raster inputs are synthesized directly from the target label (obs.wind_kts) via analytical vortex equations (eyewall cooling and eye warming parameterizing wind speed). The neural models therefore learn to invert the generator's formula rather than infer cyclone intensity from genuine spaceborne satellite observations. While storm-level temporal splitting prevents observation sharing across partitions, it cannot eliminate the deterministic target signal baked into each synthetic raster. Consequently, the low test MAE (1.721 kts) and correlation (0.999) are mathematical artifacts of analytical formula inversion and MUST NOT be cited as evidence of real-world satellite predictive skill.",
-    "modality_authenticity_breakdown": {
-      "baseline_cliper": "AUTHENTIC: Evaluated on genuine NOAA IBTrACS kinematic & climatological covariates (Test MAE 7.766 kts, RMSE 9.665 kts).",
-      "environment_only": "AUTHENTIC: Evaluated on 8 authentic IBTrACS atmospheric/kinematic covariates (Test MAE 9.993 kts, RMSE 14.317 kts).",
-      "image_only": "SYNTHETIC PROXY: Evaluated on proxy rasters generated from target wind_kts. Metrics reflect generator inversion.",
-      "multimodal_fusion": "HYBRID PROXY: Evaluated on authentic environmental covariates combined with synthetic proxy rasters."
+    "leakage_audit_findings": {
+      "frame_level_leakage": "ZERO LEAKAGE (Strict storm-level temporal separation prevents storm sharing across splits).",
+      "target_to_input_generator_leakage": "CONFIRMED & QUARANTINED in TropicalCycloneDataset (analytical proxy rasters derived from target wind speed).",
+      "authentic_tabular_features": "VERIFIED LEAKAGE-FREE (8-dim atmospheric & kinematic features do not depend on target wind speed).",
+      "authentic_spaceborne_satellite_granule": "VERIFIED LEAKAGE-FREE (NOAA GOES-16 ABI Band 1 paired independently with NHC Best Track)."
     },
-    "authentic_satellite_pathway": "For genuine Earth Observation satellite evaluation, use PairedSatelliteCycloneDataset with authentic spaceborne NOAA GOES-16 ABI or Sentinel-1/2 NetCDF granules."
+    "baseline_hierarchy_summary": {
+      "1_climatology_mae_kts": 16.706,
+      "2_persistence_mae_kts": 2.439,
+      "3_cliper_ridge_mae_kts": 7.766,
+      "4_environment_mlp_mae_kts": 9.993,
+      "5_spaceborne_satellite_error_kts": 27.64
+    }
   }
 }

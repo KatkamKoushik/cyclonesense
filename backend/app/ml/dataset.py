@@ -394,7 +394,7 @@ class IBTrACSDatasetBuilder:
         return (deg + 360.0) % 360.0
 
 
-class TropicalCycloneDataset(Dataset):
+class SyntheticProxyBenchmarkDataset(Dataset):
     """
     ANALYTICAL PROXY / SYNTHETIC EXPERIMENT DATASET:
     -------------------------------------------------
@@ -491,6 +491,40 @@ class TropicalCycloneDataset(Dataset):
             "is_synthetic_benchmark": True,  # Discloses analytical proxy generation
             "synthetic_generator_target_leakage_warning": True,
             "synthetic_generator_formula": "analytical_vortex_temp_from_wind",
+        }
+
+
+# Backwards compatibility alias for historical proxy benchmark code
+TropicalCycloneDataset = SyntheticProxyBenchmarkDataset
+
+
+class AuthenticTabularCycloneDataset(Dataset):
+    """
+    AUTHENTIC TABULAR ENVIRONMENTAL DATASET:
+    ----------------------------------------
+    Consumes ONLY verified meteorological and kinematic environmental covariates
+    from NOAA IBTrACS observations without generating proxy rasters.
+    Used for genuine, leakage-free training and evaluation of environmental models.
+    """
+
+    def __init__(self, observations: List[CycloneObservation]):
+        self.observations = observations
+
+    def __len__(self) -> int:
+        return len(self.observations)
+
+    def __getitem__(self, idx: int) -> Dict[str, Any]:
+        obs = self.observations[idx]
+        return {
+            "environment": torch.from_numpy(obs.env_features).float(),
+            "target_intensity": torch.tensor(float(obs.wind_kts), dtype=torch.float32),
+            "target_category": torch.tensor(int(obs.category), dtype=torch.long),
+            "storm_id": obs.storm_id,
+            "storm_name": obs.storm_name,
+            "season": obs.season,
+            "timestamp": obs.timestamp_iso,
+            "coords": torch.tensor([obs.lat, obs.lon], dtype=torch.float32),
+            "is_synthetic_benchmark": False,
         }
 
 

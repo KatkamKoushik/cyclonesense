@@ -17,6 +17,13 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 from scipy.ndimage import median_filter
 
+try:
+    import cyclonesense_core as cs_core
+    HAS_RUST_CORE = True
+except ImportError:
+    cs_core = None
+    HAS_RUST_CORE = False
+
 from backend.app.scientific.provenance import ProvenanceTracker
 
 
@@ -59,6 +66,13 @@ class SARProcessor:
         Converts calibrated linear backscatter intensity (sigma nought) to decibels (dB):
             sigma_0_dB = 10 * log10(max(sigma_0_linear, eps))
         """
+        if HAS_RUST_CORE and cs_core is not None:
+            orig_shape = linear_intensity.shape
+            return cs_core.sar_linear_to_db(
+                np.ascontiguousarray(linear_intensity, dtype=np.float32),
+                float(eps)
+            ).reshape(orig_shape)
+
         clamped = np.maximum(linear_intensity.astype(np.float32), eps)
         db = 10.0 * np.log10(clamped)
         return np.clip(db, cls.MIN_PHYSICAL_DB, cls.MAX_PHYSICAL_DB)

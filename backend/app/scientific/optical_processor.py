@@ -16,6 +16,13 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import numpy as np
 from scipy.ndimage import zoom
 
+try:
+    import cyclonesense_core as cs_core
+    HAS_RUST_CORE = True
+except ImportError:
+    cs_core = None
+    HAS_RUST_CORE = False
+
 from backend.app.scientific.provenance import ProvenanceTracker
 from backend.app.scientific.satellite_observation import GeographicBounds, SatelliteObservation, SatelliteTile
 
@@ -58,15 +65,22 @@ class OpticalProcessor:
             NDVI = (NIR - Red) / (NIR + Red)
         Range: [-1.0, 1.0]. Dense vegetation: 0.4 - 0.9. Water: < 0. Bare soil: 0.1 - 0.2.
         """
-        nir = nir_band.astype(np.float32)
-        red = red_band.astype(np.float32)
+        if HAS_RUST_CORE and cs_core is not None:
+            orig_shape = nir_band.shape
+            ndvi = cs_core.compute_normalized_difference(
+                np.ascontiguousarray(nir_band, dtype=np.float32),
+                np.ascontiguousarray(red_band, dtype=np.float32)
+            ).reshape(orig_shape)
+        else:
+            nir = nir_band.astype(np.float32)
+            red = red_band.astype(np.float32)
 
-        denominator = nir + red
-        with np.errstate(divide="ignore", invalid="ignore"):
-            ndvi = np.where(np.abs(denominator) > 1e-6, (nir - red) / denominator, np.nan)
-        
-        # Clip to canonical physical bounds
-        ndvi = np.clip(ndvi, -1.0, 1.0)
+            denominator = nir + red
+            with np.errstate(divide="ignore", invalid="ignore"):
+                ndvi = np.where(np.abs(denominator) > 1e-6, (nir - red) / denominator, np.nan)
+            
+            # Clip to canonical physical bounds
+            ndvi = np.clip(ndvi, -1.0, 1.0)
         if valid_mask is not None:
             ndvi = np.where(valid_mask, ndvi, np.nan)
 
@@ -103,14 +117,21 @@ class OpticalProcessor:
             NDWI = (Green - NIR) / (Green + NIR)
         Range: [-1.0, 1.0]. Open water bodies: > 0.0. Terrestrial vegetation/soil: < 0.0.
         """
-        green = green_band.astype(np.float32)
-        nir = nir_band.astype(np.float32)
+        if HAS_RUST_CORE and cs_core is not None:
+            orig_shape = green_band.shape
+            ndwi = cs_core.compute_normalized_difference(
+                np.ascontiguousarray(green_band, dtype=np.float32),
+                np.ascontiguousarray(nir_band, dtype=np.float32)
+            ).reshape(orig_shape)
+        else:
+            green = green_band.astype(np.float32)
+            nir = nir_band.astype(np.float32)
 
-        denominator = green + nir
-        with np.errstate(divide="ignore", invalid="ignore"):
-            ndwi = np.where(np.abs(denominator) > 1e-6, (green - nir) / denominator, np.nan)
+            denominator = green + nir
+            with np.errstate(divide="ignore", invalid="ignore"):
+                ndwi = np.where(np.abs(denominator) > 1e-6, (green - nir) / denominator, np.nan)
 
-        ndwi = np.clip(ndwi, -1.0, 1.0)
+            ndwi = np.clip(ndwi, -1.0, 1.0)
         if valid_mask is not None:
             ndwi = np.where(valid_mask, ndwi, np.nan)
 

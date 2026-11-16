@@ -6,6 +6,13 @@ import numpy as np
 import netCDF4 as nc
 from scipy.ndimage import zoom
 
+try:
+    import cyclonesense_core as cs_core
+    HAS_RUST_CORE = True
+except ImportError:
+    cs_core = None
+    HAS_RUST_CORE = False
+
 
 @dataclass
 class PairingValidationResult:
@@ -51,6 +58,12 @@ class SatelliteGeoreferencer:
         scanning angles x (E-W) and y (N-S) in radians.
         Returns (None, None) if the point is on the opposite side of Earth or behind satellite horizon.
         """
+        if HAS_RUST_CORE and cs_core is not None:
+            res = cs_core.latlon_to_abi_angles(float(lat_deg), float(lon_deg), float(lon_0_deg), float(h), float(req), float(rpol))
+            if res is not None:
+                return float(res[0]), float(res[1])
+            return None, None
+
         lat_rad = np.radians(lat_deg)
         lon_rad = np.radians(lon_deg)
         lon_0_rad = np.radians(lon_0_deg)
@@ -87,6 +100,12 @@ class SatelliteGeoreferencer:
         Transforms GOES ABI scanning angles (x, y in radians) to WGS84 (latitude, longitude in degrees).
         Returns (None, None) if the ray misses the Earth's ellipsoid (space pixels).
         """
+        if HAS_RUST_CORE and cs_core is not None:
+            res = cs_core.abi_angles_to_latlon(float(x_rad), float(y_rad), float(lon_0_deg), float(h), float(req), float(rpol))
+            if res is not None:
+                return float(res[0]), float(res[1])
+            return None, None
+
         H = h + req
         a = np.sin(x_rad)**2 + np.cos(x_rad)**2 * (np.cos(y_rad)**2 + (req**2 / rpol**2) * np.sin(y_rad)**2)
         b = -2.0 * H * np.cos(x_rad) * np.cos(y_rad)

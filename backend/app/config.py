@@ -33,6 +33,11 @@ class Settings(BaseSettings):
     NASA_EARTHDATA_PASSWORD: Optional[str] = None
     NASA_EARTHDATA_BEARER_TOKEN: Optional[str] = None
     ISRO_MOSDAC_API_KEY: Optional[str] = None
+
+    # Ingestion Security & Limits (CYC-01)
+    INGEST_API_KEY: str = "cyclonesense-internal-ingest-key-2026"
+    MAX_UPLOAD_SIZE_BYTES: int = 100 * 1024 * 1024  # 100 MB maximum upload limit
+    UPLOAD_CHUNK_SIZE_BYTES: int = 1024 * 1024       # 1 MB stream buffer chunk size
     
     # Scientific Limits
     MAX_ALLOWABLE_MISSING_PIXEL_PCT: float = 15.0

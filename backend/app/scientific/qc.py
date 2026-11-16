@@ -63,7 +63,7 @@ class QualityControlEngine:
                 anomalies=["Array has 0 elements"],
             )
 
-        nan_mask = np.isnan(data)
+        nan_mask = np.isnan(data) | np.isinf(data)
         nan_count = int(np.sum(nan_mask))
         missing_pct = (nan_count / total_elements) * 100.0
 

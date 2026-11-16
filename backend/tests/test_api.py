@@ -1,6 +1,7 @@
 import io
 import pytest
 from httpx import AsyncClient, ASGITransport
+from backend.app.config import settings
 from backend.app.main import app
 from backend.app.db.session import init_db
 from backend.app.scientific.grid_product_generator import create_reference_satellite_grid_netcdf
@@ -48,7 +49,8 @@ async def test_ingest_and_storm_extraction_pipeline(tmp_path):
             file_bytes = f.read()
 
         files = {"file": ("test_satellite_granule.nc", io.BytesIO(file_bytes), "application/x-netcdf")}
-        ingest_resp = await ac.post("/api/v1/ingest/file?source_origin=NOAA_TEST", files=files)
+        headers = {"X-API-Key": settings.INGEST_API_KEY}
+        ingest_resp = await ac.post("/api/v1/ingest/file?source_origin=NOAA_TEST", files=files, headers=headers)
 
         assert ingest_resp.status_code in [200, 201]
         ingest_data = ingest_resp.json()
@@ -98,12 +100,14 @@ async def test_ml_models_list_endpoint():
         resp = await ac.get("/api/v1/ml/models")
     assert resp.status_code == 200
     models = resp.json()
-    assert len(models) == 4
+    assert len(models) >= 4
     model_ids = [m["model_id"] for m in models]
     assert "cyclone_fusion_v1" in model_ids
     assert "cyclone_image_v1" in model_ids
     assert "cyclone_env_v1" in model_ids
     assert "baseline_cliper_v1" in model_ids
+    assert "baseline_climatology_v1" in model_ids
+    assert "baseline_persistence_v1" in model_ids
 
 
 @pytest.mark.asyncio

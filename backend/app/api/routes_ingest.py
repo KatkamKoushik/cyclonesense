@@ -1,8 +1,10 @@
 import shutil
+import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 import numpy as np
-from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, Security, Header
+from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,26 +19,115 @@ from backend.app.adapters.nasa import NASAAdapter
 
 router = APIRouter(prefix="/ingest", tags=["Scientific Ingestion"])
 
+api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+
+
+async def verify_ingest_auth(
+    api_key: Optional[str] = Security(api_key_header),
+    authorization: Optional[str] = Header(None),
+) -> str:
+    """
+    Enforce authentication for scientific file ingestion (CYC-01).
+    Validates X-API-Key or Authorization: Bearer <key> against configured INGEST_API_KEY.
+    """
+    configured_key = settings.INGEST_API_KEY
+    provided_key = None
+    if api_key:
+        provided_key = api_key
+    elif authorization and authorization.startswith("Bearer "):
+        provided_key = authorization[7:].strip()
+
+    if not provided_key or provided_key != configured_key:
+        raise HTTPException(
+            status_code=401,
+            detail="Authentication required for scientific file ingestion. Provide valid X-API-Key or Bearer token.",
+        )
+    return provided_key
+
 
 @router.post("/file", status_code=201)
 async def ingest_scientific_file(
     file: UploadFile = File(...),
     source_origin: str = Query("USER_UPLOAD", description="Origin of product e.g. NOAA_GOES, ISRO_INSAT"),
+    _auth: str = Depends(verify_ingest_auth),
     db: AsyncSession = Depends(get_db),
 ):
     """
     Ingest an authentic NetCDF4 or HDF5 scientific product:
-    1. Stream to raw data repository
-    2. Compute SHA-256 digest
-    3. Extract CF/ACDD metadata, variables, dimensions, channels
-    4. Run physical Quality Control (QC)
-    5. Persist product and cryptographic provenance lineage into database
+    1. Authenticate ingest authority via verify_ingest_auth (CYC-01)
+    2. Enforce filename validation, path traversal rejection, and containment
+    3. Stream with strict size limits to prevent disk exhaustion
+    4. Compute SHA-256 digest
+    5. Extract CF/ACDD metadata, variables, dimensions, channels
+    6. Run physical Quality Control (QC)
+    7. Persist product and cryptographic provenance lineage into database
     """
-    settings.DATA_RAW_DIR.mkdir(parents=True, exist_ok=True)
-    temp_path = settings.DATA_RAW_DIR / file.filename
+    original_filename = file.filename or ""
+    if not original_filename.strip():
+        raise HTTPException(status_code=400, detail="Missing or empty filename.")
 
-    with open(temp_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    # Strict rejection of path traversal and absolute paths in client filename
+    if (
+        ".." in original_filename
+        or "/" in original_filename
+        or "\\" in original_filename
+        or Path(original_filename).is_absolute()
+        or Path(original_filename).name != original_filename
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid filename: path traversal sequences ('..', '/', '\\') and absolute paths are prohibited.",
+        )
+
+    # Validate file extension
+    safe_ext = Path(original_filename).suffix.lower()
+    allowed_extensions = {".nc", ".nc4", ".h5", ".hdf5", ".hdf"}
+    if safe_ext not in allowed_extensions:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported scientific file format '{safe_ext}'. Allowed formats: {', '.join(sorted(allowed_extensions))}.",
+        )
+
+    # Server-generated unique storage path to prevent collision, traversal, or overwriting
+    raw_dir = settings.DATA_RAW_DIR.resolve()
+    raw_dir.mkdir(parents=True, exist_ok=True)
+    unique_storage_name = f"ingest_{uuid.uuid4().hex}{safe_ext}"
+    temp_path = (raw_dir / unique_storage_name).resolve()
+
+    # Strict containment check
+    if not temp_path.is_relative_to(raw_dir):
+        raise HTTPException(
+            status_code=400,
+            detail="Resolved storage path escapes the designated raw data repository.",
+        )
+
+    # Size-bounded streaming to disk
+    max_bytes = settings.MAX_UPLOAD_SIZE_BYTES
+    chunk_size = settings.UPLOAD_CHUNK_SIZE_BYTES
+    bytes_written = 0
+
+    try:
+        with open(temp_path, "wb") as buffer:
+            while True:
+                chunk = await file.read(chunk_size)
+                if not chunk:
+                    break
+                bytes_written += len(chunk)
+                if bytes_written > max_bytes:
+                    buffer.close()
+                    if temp_path.exists():
+                        temp_path.unlink()
+                    raise HTTPException(
+                        status_code=413,
+                        detail=f"Payload Too Large: File exceeds maximum allowable upload size of {max_bytes} bytes.",
+                    )
+                buffer.write(chunk)
+    except HTTPException:
+        raise
+    except Exception as e:
+        if temp_path.exists():
+            temp_path.unlink()
+        raise HTTPException(status_code=500, detail=f"Failed to stream upload to disk: {str(e)}")
 
     try:
         metadata = ScientificReader.inspect(temp_path)
@@ -52,6 +143,8 @@ async def ingest_scientific_file(
     stmt = select(ScientificProduct).where(ScientificProduct.sha256_hash == metadata.sha256_hash)
     existing = (await db.execute(stmt)).scalars().first()
     if existing:
+        if temp_path.exists() and temp_path != Path(existing.file_path).resolve():
+            temp_path.unlink()
         return {
             "message": "Product already ingested",
             "product_id": existing.id,
@@ -91,7 +184,7 @@ async def ingest_scientific_file(
 
     # Create Product record
     product = ScientificProduct(
-        filename=metadata.filename,
+        filename=Path(original_filename).name,
         file_path=str(temp_path),
         file_format=metadata.file_format,
         file_size_bytes=metadata.file_size_bytes,

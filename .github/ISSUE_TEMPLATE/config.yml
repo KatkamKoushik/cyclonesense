@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security Vulnerability Reporting
+    url: mailto:koushikkatkam@gmail.com
+    about: Please report security vulnerabilities privately via email rather than opening a public issue.
+  - name: Scientific Validation Documentation
+    url: https://github.com/KatkamKoushik/cyclonesense/blob/main/VALIDATION_REPORT.md
+    about: Review our audited validation report and baseline reconciliation methodology.

@@ -1,5 +1,95 @@
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 import numpy as np
+
+
+class ClimatologyBaselineModel:
+    """
+    Physical Climatology baseline model for tropical cyclones.
+    Predicts the historical mean intensity and modal severity category from training observations.
+    Standard operational reference baseline in meteorological forecasting (e.g. NHC/IMD).
+    """
+
+    def __init__(self):
+        self.mean_intensity: float = 45.0
+        self.std_intensity: float = 15.0
+        self.modal_category: int = 1
+        self.category_distribution: Dict[int, float] = {}
+        self.is_fitted: bool = False
+
+    def fit(self, y_intensity: np.ndarray, y_category: np.ndarray) -> "ClimatologyBaselineModel":
+        """Computes training distribution parameters."""
+        y_int = np.asarray(y_intensity, dtype=np.float32)
+        y_cat = np.asarray(y_category, dtype=np.int64)
+
+        self.mean_intensity = float(np.mean(y_int))
+        self.std_intensity = float(np.std(y_int))
+        cats, counts = np.unique(y_cat, return_counts=True)
+        self.modal_category = int(cats[np.argmax(counts)])
+        total = float(len(y_cat))
+        self.category_distribution = {int(c): float(cnt / total) for c, cnt in zip(cats, counts)}
+        self.is_fitted = True
+        return self
+
+    def predict(self, n_samples_or_X: Union[int, np.ndarray]) -> Tuple[np.ndarray, np.ndarray]:
+        """Returns constant climatological mean intensity and modal category."""
+        if not self.is_fitted:
+            raise RuntimeError("ClimatologyBaselineModel must be fitted before predict() is called.")
+        n = n_samples_or_X if isinstance(n_samples_or_X, int) else len(n_samples_or_X)
+        pred_intensity = np.full(n, self.mean_intensity, dtype=np.float32)
+        pred_category = np.full(n, self.modal_category, dtype=np.int64)
+        return pred_intensity, pred_category
+
+
+class PersistenceBaselineModel:
+    """
+    Physical Persistence baseline model for tropical cyclones.
+    Predicts that intensity and category remain unchanged from the prior observation along each storm track:
+        V_t = V_{t-1}
+        C_t = C_{t-1}
+    For the initial observation in a track (t=0) where no prior observation exists,
+    falls back to training climatology.
+    """
+
+    def __init__(self):
+        self.climatology_mean: float = 45.0
+        self.climatology_modal_cat: int = 1
+        self.is_fitted: bool = False
+
+    def fit(self, y_train_intensity: np.ndarray, y_train_category: np.ndarray) -> "PersistenceBaselineModel":
+        """Fits climatological fallback values from training observations."""
+        self.climatology_mean = float(np.mean(y_train_intensity))
+        cats, counts = np.unique(y_train_category, return_counts=True)
+        self.climatology_modal_cat = int(cats[np.argmax(counts)])
+        self.is_fitted = True
+        return self
+
+    def predict_observations(self, observations: List[Any]) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Predicts persistence intensity and category along track order for each storm.
+        Requires observations sorted chronologically per storm.
+        """
+        if not self.is_fitted:
+            raise RuntimeError("PersistenceBaselineModel must be fitted before predict_observations() is called.")
+
+        storm_last_wind: Dict[str, float] = {}
+        storm_last_cat: Dict[str, int] = {}
+
+        preds_w: List[float] = []
+        preds_c: List[int] = []
+
+        for obs in observations:
+            sid = obs.storm_id
+            if sid in storm_last_wind:
+                preds_w.append(storm_last_wind[sid])
+                preds_c.append(storm_last_cat[sid])
+            else:
+                preds_w.append(self.climatology_mean)
+                preds_c.append(self.climatology_modal_cat)
+
+            storm_last_wind[sid] = float(obs.wind_kts)
+            storm_last_cat[sid] = int(obs.category)
+
+        return np.array(preds_w, dtype=np.float32), np.array(preds_c, dtype=np.int64)
 
 
 class BaselineClimatologyPersistenceModel:

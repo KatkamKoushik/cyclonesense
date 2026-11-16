@@ -1,0 +1,16 @@
+[package]
+name = "cyclonesense_core"
+version = "0.1.0"
+edition = "2021"
+description = "High-performance scientific computing and geospatial core for CycloneSense in Rust"
+authors = ["Katkam Koushik <koushikkatkam@gmail.com>"]
+
+[lib]
+name = "cyclonesense_core"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+pyo3 = { version = "0.22", features = ["extension-module", "abi3-py312"] }
+numpy = "0.22"
+sha2 = "0.10"
+rayon = "1.10"

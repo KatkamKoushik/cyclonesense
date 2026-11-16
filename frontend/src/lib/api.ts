@@ -247,6 +247,8 @@ export interface MLModelMeta {
     size_bytes: number;
     modified: string;
   }>;
+  is_synthetic_benchmark?: boolean;
+  target_leakage_warning?: boolean;
 }
 
 export interface InferencePayload {
@@ -403,7 +405,146 @@ export interface EvaluationReport {
     };
     missing_stats: Record<string, unknown>;
   };
+  authentic_benchmarks?: {
+    baseline_climatology?: {
+      climatological_mean_kts: number;
+      climatological_modal_category: number;
+      intensity_metrics: {
+        mae_kts: number;
+        rmse_kts: number;
+        bias_kts: number;
+        pearson_r: number;
+        mae_ci?: { low: number; high: number };
+      };
+      classification_metrics: {
+        accuracy: number;
+        f1_macro?: number;
+        f1_weighted?: number;
+      };
+    };
+    baseline_persistence?: {
+      intensity_metrics: {
+        mae_kts: number;
+        rmse_kts: number;
+        bias_kts: number;
+        pearson_r: number;
+        mae_ci?: { low: number; high: number };
+      };
+      classification_metrics: {
+        accuracy: number;
+        f1_macro?: number;
+        f1_weighted?: number;
+      };
+    };
+    baseline_cliper?: {
+      intensity_metrics: {
+        mae_kts: number;
+        rmse_kts: number;
+        bias_kts: number;
+        pearson_r: number;
+        mae_ci?: { low: number; high: number };
+      };
+      classification_metrics: {
+        accuracy: number;
+        f1_macro?: number;
+        f1_weighted?: number;
+      };
+    };
+    environment_only?: {
+      test_evaluation: {
+        intensity_metrics: {
+          mae_kts: number;
+          rmse_kts: number;
+          bias_kts: number;
+          pearson_r: number;
+          mae_ci?: { low: number; high: number };
+        };
+        classification_metrics: {
+          accuracy: number;
+          f1_macro?: number;
+          f1_weighted?: number;
+        };
+      };
+    };
+    spaceborne_satellite_observation?: {
+      sensor: string;
+      storm_name: string;
+      season: number;
+      ground_truth_intensity_kts: number;
+      predicted_intensity_kts: number;
+      absolute_error_kts: number;
+      predicted_category: string;
+      gradcam_eyewall_energy_ratio: number;
+      provenance_w3c_id: string;
+      is_synthetic_benchmark: boolean;
+    };
+  };
+  quarantined_proxy_experiments?: {
+    TARGET_LEAKAGE_WARNING?: boolean;
+    audit_finding?: string;
+    image_only?: {
+      test_evaluation: {
+        intensity_metrics: {
+          mae_kts: number;
+          rmse_kts: number;
+          bias_kts: number;
+          pearson_r: number;
+        };
+        classification_metrics: {
+          accuracy: number;
+          f1_macro?: number;
+          f1_weighted?: number;
+        };
+      };
+    };
+    multimodal_fusion?: {
+      test_evaluation: {
+        intensity_metrics: {
+          mae_kts: number;
+          rmse_kts: number;
+          bias_kts: number;
+          pearson_r: number;
+        };
+        classification_metrics: {
+          accuracy: number;
+          f1_macro?: number;
+          f1_weighted?: number;
+        };
+      };
+    };
+  };
   models_evaluated: {
+    baseline_climatology?: {
+      climatological_mean_kts?: number;
+      intensity_metrics: {
+        mae_kts: number;
+        rmse_kts: number;
+        bias_kts: number;
+        pearson_r: number;
+        mae_ci?: { low: number; high: number };
+      };
+      classification_metrics: {
+        accuracy: number;
+        f1_macro?: number;
+        macro_f1?: number;
+        f1_weighted?: number;
+      };
+    };
+    baseline_persistence?: {
+      intensity_metrics: {
+        mae_kts: number;
+        rmse_kts: number;
+        bias_kts: number;
+        pearson_r: number;
+        mae_ci?: { low: number; high: number };
+      };
+      classification_metrics: {
+        accuracy: number;
+        f1_macro?: number;
+        macro_f1?: number;
+        f1_weighted?: number;
+      };
+    };
     baseline_cliper?: {
       model_type: string;
       train_samples: number;
@@ -414,6 +555,7 @@ export interface EvaluationReport {
         rmse_kts: number;
         bias_kts: number;
         pearson_r: number;
+        mae_ci?: { low: number; high: number };
       };
       classification_metrics: {
         sample_count: number;
@@ -432,6 +574,7 @@ export interface EvaluationReport {
           rmse_kts: number;
           bias_kts: number;
           pearson_r: number;
+          mae_ci?: { low: number; high: number };
         };
         classification_metrics: {
           accuracy: number;
@@ -450,6 +593,7 @@ export interface EvaluationReport {
           rmse_kts: number;
           bias_kts: number;
           pearson_r: number;
+          mae_ci?: { low: number; high: number };
         };
         classification_metrics: {
           accuracy: number;
@@ -468,6 +612,7 @@ export interface EvaluationReport {
           rmse_kts: number;
           bias_kts: number;
           pearson_r: number;
+          mae_ci?: { low: number; high: number };
         };
         classification_metrics: {
           accuracy: number;

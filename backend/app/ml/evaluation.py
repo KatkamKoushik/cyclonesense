@@ -84,6 +84,75 @@ class EvaluationMetrics:
             "f1_weighted": round(f1_weighted, 4),
         }
 
+    @staticmethod
+    def compute_confidence_intervals(
+        y_true: np.ndarray,
+        y_pred: np.ndarray,
+        n_bootstraps: int = 500,
+        ci: float = 0.95,
+        seed: int = 42,
+    ) -> Dict[str, Dict[str, float]]:
+        y_true = np.asarray(y_true, dtype=np.float64)
+        y_pred = np.asarray(y_pred, dtype=np.float64)
+        n = len(y_true)
+        if n < 2:
+            return {"mae_ci": {"low": 0.0, "high": 0.0}, "rmse_ci": {"low": 0.0, "high": 0.0}}
+
+        rng = np.random.RandomState(seed)
+        diff = y_pred - y_true
+        abs_diff = np.abs(diff)
+        sq_diff = diff ** 2
+
+        mae_samples, rmse_samples = [], []
+        for _ in range(n_bootstraps):
+            idx = rng.randint(0, n, size=n)
+            mae_samples.append(float(np.mean(abs_diff[idx])))
+            rmse_samples.append(float(np.sqrt(np.mean(sq_diff[idx]))))
+
+        alpha = (1.0 - ci) / 2.0
+        low_idx = int(alpha * n_bootstraps)
+        high_idx = int((1.0 - alpha) * n_bootstraps)
+        mae_sorted = sorted(mae_samples)
+        rmse_sorted = sorted(rmse_samples)
+        return {
+            "mae_ci": {"low": round(mae_sorted[low_idx], 3), "high": round(mae_sorted[high_idx], 3)},
+            "rmse_ci": {"low": round(rmse_sorted[low_idx], 3), "high": round(rmse_sorted[high_idx], 3)},
+        }
+
+    @staticmethod
+    def compute_stratified_metrics(
+        y_true_wind: np.ndarray,
+        y_pred_wind: np.ndarray,
+        y_true_cat: np.ndarray,
+    ) -> Dict[str, Dict[str, Any]]:
+        category_names = {
+            0: "Depression (< 34 kts)",
+            1: "Cyclonic Storm (34-63 kts)",
+            2: "Very Severe CS (64-89 kts)",
+            3: "Extremely Severe CS (90-119 kts)",
+            4: "Super Cyclonic Storm (>= 120 kts)",
+        }
+        y_true_w = np.asarray(y_true_wind, dtype=np.float64)
+        y_pred_w = np.asarray(y_pred_wind, dtype=np.float64)
+        y_true_c = np.asarray(y_true_cat, dtype=np.int64)
+
+        stratified = {}
+        for cat_idx, cat_name in category_names.items():
+            mask = y_true_c == cat_idx
+            count = int(np.sum(mask))
+            if count == 0:
+                stratified[cat_name] = {"sample_count": 0, "mae_kts": None, "rmse_kts": None}
+                continue
+
+            sub_diff = y_pred_w[mask] - y_true_w[mask]
+            stratified[cat_name] = {
+                "sample_count": count,
+                "mae_kts": round(float(np.mean(np.abs(sub_diff))), 3),
+                "rmse_kts": round(float(np.sqrt(np.mean(sub_diff ** 2))), 3),
+                "bias_kts": round(float(np.mean(sub_diff)), 3),
+            }
+        return stratified
+
 
 class ModelEvaluator:
     """
@@ -146,13 +215,16 @@ class ModelEvaluator:
         arr_pred_c = np.array(y_pred_cat)
 
         intensity_metrics = EvaluationMetrics.compute_intensity_metrics(arr_true_w, arr_pred_w)
+        intensity_metrics.update(EvaluationMetrics.compute_confidence_intervals(arr_true_w, arr_pred_w))
         classification_metrics = EvaluationMetrics.compute_classification_metrics(arr_true_c, arr_pred_c)
+        stratified_metrics = EvaluationMetrics.compute_stratified_metrics(arr_true_w, arr_pred_w, arr_true_c)
 
         return {
             "model_type": model_type,
             "total_samples_evaluated": total_samples,
             "intensity_metrics": intensity_metrics,
             "classification_metrics": classification_metrics,
+            "stratified_metrics": stratified_metrics,
         }
 
     @classmethod
@@ -178,11 +250,14 @@ class ModelEvaluator:
         pred_w, pred_c = baseline_model.predict(X)
 
         intensity_metrics = EvaluationMetrics.compute_intensity_metrics(arr_true_w, pred_w)
+        intensity_metrics.update(EvaluationMetrics.compute_confidence_intervals(arr_true_w, pred_w))
         classification_metrics = EvaluationMetrics.compute_classification_metrics(arr_true_c, pred_c)
+        stratified_metrics = EvaluationMetrics.compute_stratified_metrics(arr_true_w, pred_w, arr_true_c)
 
         return {
             "model_type": "baseline_cliper",
             "total_samples_evaluated": len(arr_true_w),
             "intensity_metrics": intensity_metrics,
             "classification_metrics": classification_metrics,
+            "stratified_metrics": stratified_metrics,
         }

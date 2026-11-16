@@ -40,7 +40,9 @@ class ModelTrainer:
 
         pred_w, pred_c = model.predict(X_test)
         int_metrics = EvaluationMetrics.compute_intensity_metrics(y_w_test, pred_w)
+        int_metrics.update(EvaluationMetrics.compute_confidence_intervals(y_w_test, pred_w))
         cat_metrics = EvaluationMetrics.compute_classification_metrics(y_c_test, pred_c)
+        stratified = EvaluationMetrics.compute_stratified_metrics(y_w_test, pred_w, y_c_test)
 
         feature_names = [
             "lat", "lon", "coriolis", "dist_equator", "pressure_deficit", "speed", "bearing_cos", "season_phase"
@@ -53,7 +55,72 @@ class ModelTrainer:
             "test_samples": len(test_obs),
             "intensity_metrics": int_metrics,
             "classification_metrics": cat_metrics,
+            "stratified_metrics": stratified,
             "feature_importances": importances,
+        }
+
+    @classmethod
+    def evaluate_climatology_baseline(
+        cls,
+        train_obs: List[Any],
+        test_obs: List[Any],
+    ) -> Dict[str, Any]:
+        """Evaluates pure Climatology baseline (training mean intensity & mode category)."""
+        from backend.app.ml.models.baseline import ClimatologyBaselineModel
+        y_w_train = np.array([o.wind_kts for o in train_obs], dtype=np.float32)
+        y_c_train = np.array([o.category for o in train_obs], dtype=np.int64)
+        y_w_test = np.array([o.wind_kts for o in test_obs], dtype=np.float32)
+        y_c_test = np.array([o.category for o in test_obs], dtype=np.int64)
+
+        model = ClimatologyBaselineModel()
+        model.fit(y_w_train, y_c_train)
+        pred_w, pred_c = model.predict(len(test_obs))
+
+        int_metrics = EvaluationMetrics.compute_intensity_metrics(y_w_test, pred_w)
+        int_metrics.update(EvaluationMetrics.compute_confidence_intervals(y_w_test, pred_w))
+        cat_metrics = EvaluationMetrics.compute_classification_metrics(y_c_test, pred_c)
+        stratified = EvaluationMetrics.compute_stratified_metrics(y_w_test, pred_w, y_c_test)
+
+        return {
+            "model_type": "baseline_climatology",
+            "train_samples": len(train_obs),
+            "test_samples": len(test_obs),
+            "climatological_mean_kts": round(model.mean_intensity, 2),
+            "climatological_modal_category": model.modal_category,
+            "intensity_metrics": int_metrics,
+            "classification_metrics": cat_metrics,
+            "stratified_metrics": stratified,
+        }
+
+    @classmethod
+    def evaluate_persistence_baseline(
+        cls,
+        train_obs: List[Any],
+        test_obs: List[Any],
+    ) -> Dict[str, Any]:
+        """Evaluates pure Persistence baseline along chronological storm tracks."""
+        from backend.app.ml.models.baseline import PersistenceBaselineModel
+        y_w_train = np.array([o.wind_kts for o in train_obs], dtype=np.float32)
+        y_c_train = np.array([o.category for o in train_obs], dtype=np.int64)
+        y_w_test = np.array([o.wind_kts for o in test_obs], dtype=np.float32)
+        y_c_test = np.array([o.category for o in test_obs], dtype=np.int64)
+
+        model = PersistenceBaselineModel()
+        model.fit(y_w_train, y_c_train)
+        pred_w, pred_c = model.predict_observations(test_obs)
+
+        int_metrics = EvaluationMetrics.compute_intensity_metrics(y_w_test, pred_w)
+        int_metrics.update(EvaluationMetrics.compute_confidence_intervals(y_w_test, pred_w))
+        cat_metrics = EvaluationMetrics.compute_classification_metrics(y_c_test, pred_c)
+        stratified = EvaluationMetrics.compute_stratified_metrics(y_w_test, pred_w, y_c_test)
+
+        return {
+            "model_type": "baseline_persistence",
+            "train_samples": len(train_obs),
+            "test_samples": len(test_obs),
+            "intensity_metrics": int_metrics,
+            "classification_metrics": cat_metrics,
+            "stratified_metrics": stratified,
         }
 
     @classmethod

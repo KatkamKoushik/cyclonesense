@@ -6,6 +6,13 @@ from pathlib import Path
 from typing import Any, Dict, Optional, Union
 import numpy as np
 
+try:
+    import cyclonesense_core as cs_core
+    HAS_RUST_CORE = True
+except ImportError:
+    cs_core = None
+    HAS_RUST_CORE = False
+
 
 class ProvenanceTracker:
     """
@@ -16,6 +23,11 @@ class ProvenanceTracker:
     @staticmethod
     def hash_file(filepath: Union[str, Path]) -> str:
         """Calculate SHA-256 digest of an on-disk scientific product."""
+        if HAS_RUST_CORE and cs_core is not None:
+            try:
+                return cs_core.fast_sha256_file(str(filepath))
+            except Exception:
+                pass
         hasher = hashlib.sha256()
         with open(filepath, "rb") as f:
             while chunk := f.read(65536):
